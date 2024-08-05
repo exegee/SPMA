@@ -1,0 +1,17 @@
+mat-form-field {
+  display: block;
+}
+
+.bgcolor {
+  background-color: whitesmoke;
+  border-top: solid 2px white;
+  border-bottom: solid 2px white;
+}
+
+.button-look{
+    font-size: 20px;
+    height:45px;
+}
+ input{
+     font-size:20px;
+ }

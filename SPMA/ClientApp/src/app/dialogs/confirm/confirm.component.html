@@ -1,0 +1,9 @@
+<p class="h4">Potwierdź</p>
+<mat-divider></mat-divider>
+<div mat-dialog-content>
+  <p class="h5 mt-3">{{data.message}}</p>
+</div>
+<div mat-dialog-actions class="float-right">
+  <button mat-raised-button color="warn" class="mr-3 button-look" (click)="onNoClick()">Nie</button>
+  <button [mat-dialog-close]="true" mat-raised-button color="primary" class="button-look">Tak</button>
+</div>

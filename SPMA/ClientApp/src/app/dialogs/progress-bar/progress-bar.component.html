@@ -1,0 +1,18 @@
+<div class="text-center">
+  <h1 mat-dialog-title>{{data.title}}</h1>
+  <div mat-dialog-content class="pb-3">
+    <div class="row">
+      <div class="col m-auto">
+        <h4>{{data.message}}</h4>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col m-auto">
+        <mat-progress-bar class="mt-3" mode="indeterminate"></mat-progress-bar>
+      </div>  
+    </div>
+  </div>
+  <div mat-dialog-actions class="float-right pb-3" *ngIf="canClose">
+    <button mat-raised-button color="primary" class="mr-3" (click)="onClose()">Ok</button>
+  </div>
+</div>

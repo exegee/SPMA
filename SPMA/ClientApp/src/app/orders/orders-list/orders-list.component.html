@@ -1,0 +1,230 @@
+<div style="height:100%;">
+  <div class="orders-list-container">
+    <button mat-raised-button color="primary" (click)="onNewOrder()" class="mr-3">Nowe zlecenie</button>
+    <button mat-raised-button color="success" (click)="onPrintOrders()" class="mr-3">
+      <span *ngIf="!isOrdersListPrinting"><fa-icon class="fa mr-1" [icon]="faPrint"></fa-icon></span>
+      <span *ngIf="isOrdersListPrinting" class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>
+      Drukuj
+    </button>
+    <button mat-raised-button (click)="onReload()">Odśwież</button>
+    <!--<mat-form-field class="search-input">
+      <input matInput id="All" (focus)="activatedInput($event)" placeholder="Wyszukaj..." #searchInput>
+    </mat-form-field>-->
+
+    <div class="loading-shade" *ngIf="dataSource.loading$ | async">
+      <div class="spinner-border">
+      </div>
+    </div>
+    <!--<div style="margin:10px 0 0 0;">
+    <mat-progress-bar mode="determinate" [value]="statusRWprogressBar"></mat-progress-bar>
+  </div>-->
+    <table mat-table [dataSource]="dataSource" multiTemplateDataRows
+           matSort matSortActive="Number" matSortDirection="asc" matSortDisableClear class="orders-table mt-2">
+
+      <ng-container matColumnDef="Position">
+        <th mat-header-cell *matHeaderCellDef style="width:4%;">#</th>
+        <td mat-cell *matCellDef="let order" style="width:4%;">{{order.position}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="Select">
+        <th mat-header-cell *matHeaderCellDef style="padding-top: 10px;">
+          <mat-checkbox (change)="$event ? masterToggle(): null"
+                        [checked]="selection.hasValue() && isAllSelected()"
+                        [indeterminate]="selection.hasValue() && !isAllSelected()"
+                        color="primary">
+          </mat-checkbox>
+        </th>
+        <td mat-cell *matCellDef="let row" style="padding-top: 10px;">
+          <mat-checkbox (click)="$event.stopPropagation()"
+                        (change)="$event ? selection.toggle(row) : null"
+                        [checked]="selection.isSelected(row)"
+                        color="primary">
+          </mat-checkbox>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="State">
+        <th mat-header-cell *matHeaderCellDef style="width:3%;" class="text-center">Status</th>
+        <td mat-cell *matCellDef="let order" style="width:3%;" class="text-center">{{printState(order)}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="PlanFinQty">
+        <th mat-header-cell *matHeaderCellDef style="width:5%;" class="text-center">Ilość</th>
+        <td mat-cell *matCellDef="let order" style="width:5%;" class="text-center">{{order.finishedQty}} / {{order.plannedQty}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="Number">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header style="width:7%;" class="pl-2 sortable">Numer</th>
+        <td mat-cell *matCellDef="let order" style="width:7%;" class="pl-2">{{order.number}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="StatusRW">
+        <th mat-header-cell *matHeaderCellDef style="width:5%;" class="text-center">Stan RW</th>
+        <td mat-cell *matCellDef="let order" style="width:5%;" class="text-center">
+          <!--<div *ngIf="!order.loadingRWStatusCompleted">
+          <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>-->
+          <!--<div *ngIf="order.loadingRWStatusCompleted">-->
+          {{order.rwCompletion | number : '1.1-1'}} %
+          <!--</div>-->
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="Name">
+        <th class="sortable" mat-header-cell *matHeaderCellDef mat-sort-header style="width:35%;">Nazwa</th>
+        <td mat-cell *matCellDef="let order" style="width:35%;">{{order.name}}</td>
+      </ng-container>
+      <ng-container matColumnDef="ClientName">
+        <th class="sortable" mat-header-cell *matHeaderCellDef mat-sort-header style="width:20%;">Klient</th>
+        <td mat-cell *matCellDef="let order" style="width:20%;">{{order.clientName}}</td>
+      </ng-container>
+      <ng-container matColumnDef="OrderDate">
+        <th class="sortable" mat-header-cell *matHeaderCellDef mat-sort-header style="width:10%;">Data wpłynięcia</th>
+        <td mat-cell *matCellDef="let order" style="width:10%;">{{order.orderDate | date:'mediumDate':'pl'}}</td>
+      </ng-container>
+      <ng-container matColumnDef="RequiredDate">
+        <th class="sortable" mat-header-cell *matHeaderCellDef mat-sort-header style="width:10%;">Termin wykonania</th>
+        <td mat-cell *matCellDef="let order" style="width:10%;">{{order.requiredDate | date:'mediumDate':'pl'}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="InputSearch">
+        <th class="sortable" mat-header-cell *matHeaderCellDef mat-sort-header style="width:10%;">Termin wykonania</th>
+        <td mat-cell *matCellDef="let order" style="width:10%;">{{order.requiredDate | date:'mediumDate':'pl'}}</td>
+      </ng-container>
+
+      <!-- Header row first group disabled -->
+      <ng-container matColumnDef="disabledInput">
+        <th mat-header-cell *matHeaderCellDef>
+          <!--<mat-form-field appearance="fill">
+          <input matInput disabled matAutosize="true">
+        </mat-form-field>-->
+        </th>
+      </ng-container>
+
+      <!-- Header row second group Order Number -->
+      <ng-container matColumnDef="NumberInput">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-form-field style="width: 90%">
+            <input matInput id="Number" placeholder="Numer" #searchNumberInput class="search-input" [(ngModel)]="numberSearchInputValue">
+            <button mat-button *ngIf="numberSearchInputValue" matSuffix mat-icon-button aria-label="Clear" (click)="onClearNumberSearchInputValue()">
+              <mat-icon class="close-icon">close</mat-icon>
+            </button>
+          </mat-form-field>
+        </th>
+      </ng-container>
+
+      <!-- Header row second group Order Name -->
+      <ng-container matColumnDef="NameInput">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-form-field style="width: 90%;">
+            <input matInput id="Name" placeholder="Nazwa" #searchNameInput class="search-input" [(ngModel)]="nameSearchInputValue">
+            <button mat-button *ngIf="nameSearchInputValue" matSuffix mat-icon-button aria-label="Clear" (click)="onClearNameSearchInputValue()">
+              <mat-icon class="close-icon">close</mat-icon>
+            </button>
+          </mat-form-field>
+        </th>
+      </ng-container>
+
+      <!-- Header row second group Order Client Name-->
+      <ng-container matColumnDef="ClientInput">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-form-field style="width: 90%;">
+            <input matInput id="ClientName" placeholder="Klient" #searchClientInput class="search-input" [(ngModel)]="clientNameSearchInputValue">
+            <button mat-button *ngIf="clientNameSearchInputValue" matSuffix mat-icon-button aria-label="Clear" (click)="onClearClientNameSearchInputValue()">
+              <mat-icon class="close-icon">close</mat-icon>
+            </button>
+          </mat-form-field>
+        </th>
+      </ng-container>
+
+      <ng-container matColumnDef="expandedDetail">
+        <td mat-cell *matCellDef="let order" [attr.colspan]="displayedColumns.length">
+          <div class="example-element-detail"
+               [@detailExpand]="order == expandedElement ? 'expanded' : 'collapsed'" (click)="onDetailExpand(order)">
+            <div class="d-flex flex-row py-4" id="{{order.orderId}}" #selectedOrderId ng-show="order == expandedElement">
+
+              <!--<div class="col-4 py-3 pl-4">-->
+              <!--<h5>Dane do wysyłki</h5>
+            <hr />-->
+              <!--<div>{{order.shippingName}}</div>
+            <div>{{order.shippingAddress}}</div>
+            <div>{{order.shippingPostalCode}} {{order.shippingCity}}</div>
+            <div>{{order.shippingRegion}}</div>
+            <div>{{order.shippingCountry}}</div>-->
+              <!--</div>
+            <div class="col-8 py-3">
+              <h5>Komentarz</h5>
+
+            </div>
+            <hr />-->
+              <div class="col-4">
+                <mat-form-field style="width:100%;">
+                  <mat-label>Komentarz</mat-label>
+                  <input matInput [value]="order.comment" readonly>
+                </mat-form-field>
+                <!--<div style="font-size:20px; font-weight: 500;">Komentarz</div>
+              <div style="font-size:14px;">{{order.comment}}</div>-->
+              </div>
+              <div class="col-4">
+                <mat-list dense>
+                  <mat-list-item> 057.000.001</mat-list-item>
+                  <mat-divider></mat-divider>
+                  <mat-list-item> 057.030.001 </mat-list-item>
+                  <mat-divider></mat-divider>
+                  <mat-list-item> 057.010.03 </mat-list-item>
+                </mat-list>
+              </div>
+            </div>
+            <div class="d-flex flex-row  pb-3" ng-show="order == expandedElement">
+              <!--<div class="col-12">-->
+              <!--<div class="d-flex ">-->
+              <div class="col-auto d-flex align-items-center">
+                <button mat-raised-button color="warn" (click)="onDeleteOrder(selectedOrderId)" class="expandButton mr-4">Usuń</button>
+                <button mat-raised-button color="success" (click)="onEditOrder(selectedOrderId)" class="expandButton mr-2">Edytuj</button>
+                <button mat-raised-button color="success" (click)="onNewOrderFromExisting(order)" class="expandButton mr-2">
+                  <fa-icon class="fa mr-1" [icon]="faClone"></fa-icon>Kopiuj
+                </button>
+                <button mat-raised-button color="primary" (click)="onShowOrderDetail(selectedOrderId)" class="expandButton mr-2">Szczegóły</button>
+                <button mat-raised-button color="success" (click)="printOrderDetails(selectedOrderId)" class="expandButton mr-2">
+                  <span *ngIf="!isOrderDetailPrinting" style="vertical-align: baseline;"><fa-icon class="fa mr-1" [icon]="faPrint"></fa-icon></span>
+                  <span *ngIf="isOrderDetailPrinting" class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>
+                  Drukuj szczegóły
+                </button>
+              </div>
+              <div class="col-auto ml-auto">
+                <mat-form-field appearance="fill" class="margin-auto">
+                  <mat-label>Status</mat-label>
+                  <mat-select [(value)]="selectedStateValue" (selectionChange)="onStateChange(order, $event)">
+                    <mat-option [value]="0">W produkcji</mat-option>
+                    <mat-option [value]="10">Zakończony</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <!--<span *ngIf="!isPrinting"><fa-icon class="fa mr-1" [icon]="faPrint"></fa-icon></span>
+  <span *ngIf="isPrinting" class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>-->
+              <!--<div class="col-1"><button mat-raised-button color="primary" class="" (click)="onArchiveOrder(selectedOrderId)">Archiwizuj</button></div>-->
+              <!--</div>-->
+              <!--</div>-->
+            </div>
+
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-header-row *matHeaderRowDef="['disabledInput','disabledInput','NumberInput','disabledInput','disabledInput','NameInput','ClientInput','disabledInput','disabledInput']; sticky: true"></tr>
+      <tr mat-row *matRowDef="let order; columns: displayedColumns;"
+          class="example-element-row"
+          [class.example-expanded-row]="expandedElement === order"
+          (click)="onTableRowClick(order)"
+          (dblclick)="onDoubleOrderClick()"></tr>
+      <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="example-detail-row"></tr>
+
+    </table>
+
+    <!--<mat-paginator class="mat-paginator-sticky" [length]="this.dataSource.dataLength" [pageSize]="100" [pageSizeOptions]="[25,50,100]" showFirstLastButtons></mat-paginator>-->
+  </div>
+  
+</div>

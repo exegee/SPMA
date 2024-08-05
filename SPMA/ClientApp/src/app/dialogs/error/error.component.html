@@ -1,0 +1,8 @@
+<h1 mat-dialog-title>Błąd</h1>
+<div mat-dialog-content>
+  {{data.message}}
+</div>
+<div mat-dialog-actions class="float-right">
+  <button mat-raised-button color="primary" class="mr-3" (click)="onEditClick()">Wróć do edycji</button>
+  <button [mat-dialog-close]="true" mat-raised-button color="primary">Spróbój ponownie</button>
+</div>

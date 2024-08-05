@@ -1,0 +1,45 @@
+.breadcrumb-item::before{
+    font-size : 1.4rem;
+}
+
+.suborders-list-container {
+  position: relative;
+  overflow-y: auto;
+  height: 69vh;
+}
+
+.sub-order {
+  background-color: whitesmoke;
+  font-weight: bold;
+}
+
+
+th {
+  font-size: 22px;
+  color: black;
+  vertical-align: middle !important;
+}
+
+tr[mat-row]:hover {
+  background-color: whitesmoke;
+}
+
+td {
+  vertical-align: middle;
+  font-size: 20px;
+}
+
+td.withButton {
+  vertical-align: middle;
+  text-align: center;
+}
+
+.header {
+  border-radius: 3px;
+  background-color: #e9ecef;
+}
+
+.customNavbar {
+  display: inline-block;
+}
+

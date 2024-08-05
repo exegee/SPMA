@@ -1,0 +1,297 @@
+<div class="container-fluid" *ngIf="isLoadingSubOrder">
+  <mat-card>
+    <mat-card-content>
+      <p class="h4" style="text-align: center; color:black">Wczytywanie komponentu</p>
+      <p class="h6 mb-5" style="text-align: center; color: dimgrey">proszę czekać</p>
+      <mat-progress-bar color="success" mode="query"></mat-progress-bar>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+
+
+
+<div *ngIf="!isLoadingSubOrder" class="container-fluid px-4">
+  <!-- -->
+
+  <div class="row">
+    <div class="col header d-flex align-items-center mb-2">
+      <button mat-raised-button
+              color="primary"
+              (click)="backToSubOrderItemList()">
+        <h4 class="m-2"><< Wróć</h4>
+      </button>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-0">
+          <li class="breadcrumb-item"><a routerLink="#" (click)="backToSubOrderList()" ><span class="h4">Wybrane zlecenie:<strong> {{subOrderData.subOrderInfo.order.number}}</strong> </span></a></li>
+          <li class="breadcrumb-item"><a routerLink="#" (click)="backToSubOrderItemList()"><span class=" h4">Wybrane podzlecenie: <strong>{{subOrderData.subOrderInfo.number}}</strong></span></a></li>   <!--/production/productionSuborderItemList" [queryParams]="{orderID:orderId, subOrderID : subOrderId ,officeNumber: officenumber, componentNumber:componentnumber}"-->
+          <li class="breadcrumb-item active" aria-current="page"><span class="h4"><strong>{{index+1}}. {{subOrderData.subOrder.data[this.index].inProduction.component.name}}</strong></span></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+  <!--<div class="row mb-3">
+    <div class="col border-0">
+      <button mat-raised-button
+              color="primary"
+              (click)="backToSubOrderItemList()">
+        <h4 class="m-2"><< Wróć</h4>
+      </button>
+    </div>
+  </div>
+
+  <div class="row mt-2 mb-3">-->
+  <!--<p class="h4 d-inline-block pr-3 mr-1 border-right border-dark">Wybrane zlecenie: ID</p>
+  <p class="h4 d-inline-block pl-3 ml-1 border-left border-dark">Wybrane podzlecenie: ID</p>-->
+  <!--<div class="col p-0">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb m-0">
+        <li class="breadcrumb-item"><a routerLink="/production/productionSuborderList" [queryParams]="{orderID : orderId}"><span class="h4">Wybrane zlecenie:<strong> {{subOrderData.subOrderInfo.order.number}}</strong> </span></a></li>
+        <li class="breadcrumb-item"><a routerLink="#" (click)="backToSubOrderItemList()"><span class=" h4">Wybrane podzlecenie: <strong>{{subOrderData.subOrderInfo.number}}</strong></span></a></li>-->
+  <!--/production/productionSuborderItemList" [queryParams]="{orderID:orderId, subOrderID : subOrderId ,officeNumber: officenumber, componentNumber:componentnumber}"-->
+  <!--<li class="breadcrumb-item active" aria-current="page"><span class="h4"><strong>{{index+1}}. {{subOrderData.subOrder.data[this.index].inProduction.component.name}}</strong></span></li>
+        </ol>
+      </nav>
+    </div>
+  </div>-->
+
+<div class="row">
+  <div class="col-1 input-readonly">
+    <!--<p class="h6">Numer książki</p>-->
+    <mat-form-field style="width: inherit">
+      <input matInput placeholder="Numer książki" readonly [value]="officenumber" />
+    </mat-form-field>
+  </div>
+  <div class="col-5 input-readonly">
+    <!--<p class="h6">Nr rysunku</p>-->
+    <mat-form-field style="width: inherit">
+      <input matInput placeholder="Numer rysunku" readonly
+             [value]="subOrderData.subOrder.data[this.index].inProduction.component.number + ' - ' + subOrderData.subOrder.data[this.index].inProduction.component.name" />
+    </mat-form-field>
+  </div>
+  <div class="col-6 d-flex align-items-center input-readonly" style="padding-right: 10px">
+    <!--<p class="h6"> Rodzaj materiału</p>-->
+    <mat-form-field style="width: inherit; padding-right:10px">
+      <input matInput placeholder="Rodzaj materiału"
+             (input)="onInputChange($event)"
+             [formControl]="materialNameInput"
+             readonly />
+    </mat-form-field>
+    <button class="button-text mx-2" style="width:140px; height: 45px;" mat-raised-button color="warn" (click)="onMaterialChange()"><mat-icon class="mb-1 mr-1">edit</mat-icon>Zmień</button>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-1 input-readonly">
+    <!--<p class="h6">L.sztuk/książkę</p>-->
+    <mat-form-field style="width: inherit">
+      <input matInput placeholder="Ilość zleceń"
+             readonly
+             [formControl]="ordersQty" />
+    </mat-form-field>
+  </div>
+  <div class="col-1 input-readonly">
+    <!--<p class="h6">L.kpl.</p>-->
+    <mat-form-field style="width: inherit">
+      <input matInput placeholder="Ilość książek"
+             readonly
+             [formControl]="setQuantityInput" />
+    </mat-form-field>
+  </div>
+  <div class="col-2 input-readonly">
+    <!--<p class="h6">L.sztuk</p>-->
+    <mat-form-field style="width: inherit">
+      <input matInput placeholder="Ilość sztuk w danym rysunku"
+             [formControl]="quantityInput"
+             readonly />
+    </mat-form-field>
+  </div>
+  <div class="col-2 input" style="border-color:lawngreen">
+    <!--<p class="h6">Łączna liczba sztuk</p>-->
+    <mat-form-field style="width: inherit">
+      <input matInput type="number" placeholder="Łączna ilość sztuk"
+             [formControl]="totalQuantityInput"
+             (input)="onQtyChange($event.target.value)" />
+      <mat-error *ngIf="totalQuantityInput.hasError('required')">pole jest wymagane</mat-error>
+      <mat-error *ngIf="totalQuantityInput.hasError('min')">musi być większe od <strong>{{subOrderData.subOrder.data[this.index].inProduction.plannedQty}}</strong></mat-error>
+    </mat-form-field>
+  </div>
+  <div class="col-1 offset-2 input-readonly">
+    <!--<p class="h6">Długość</p>-->
+    <mat-form-field style="width: inherit">
+      <input matInput type="number" placeholder="Ilość/sztukę"
+             [formControl]="lengthInput"
+             readonly />
+      <span matSuffix class="pl-1">{{subOrderData.subOrder.data[this.index].wareUnit}}</span>
+    </mat-form-field>
+  </div>
+  <div class="col-1 input-readonly">
+    <!--<p class="h6">Długość</p>-->
+    <mat-form-field style="width: inherit">
+      <input matInput type="number" placeholder="Ilość razem"
+             [formControl]="sumlengthInput"
+             readonly />
+      <span matSuffix class="pl-1">{{subOrderData.subOrder.data[this.index].wareUnit}}</span>
+    </mat-form-field>
+
+  </div>
+
+  <div class="col-2 input">
+    <!--<p class="h6">Długość z naddatkiem</p>-->
+    <mat-form-field style="width: inherit">
+      <input matInput type="number" min="0" placeholder="Ilość pobrana"
+             [formControl]="lengthWithOverflowInput"
+             [errorStateMatcher]="matcher"
+             (input)="onLengthwithOverflowChange($event.target.value)" />
+      <mat-error *ngIf="lengthWithOverflowInput.hasError('required')">pole jest wymagane</mat-error>
+      <mat-error *ngIf="lengthWithOverflowInput.hasError('min')">musi być większe od <strong>{{lengthInput.value*this.totalQty}}</strong></mat-error>
+      <span matSuffix class="pl-1">{{this.subOrderData.subOrder.data[this.index].wareUnit}}</span>
+    </mat-form-field>
+  </div>
+</div>
+  <div class="row">
+    <!--<div class="col-4 border-right-0 input-readonly">-->
+      <!--<p class="h6">Gatunek materiału</p>-->
+      <!--<mat-form-field style="width: inherit">
+        <input matInput placeholder="Gatunek materiału"
+               readonly
+               [formControl]="materialTypeInput" />
+      </mat-form-field>
+    </div>-->
+    <!--<div class="col-1 d-flex align-items-center border-left-0 pl-0">
+      <button mat-raised-button color="warn" (click)="onMaterialChange()"><mat-icon>edit</mat-icon> Zmień</button>
+    </div>-->
+   
+  </div>
+
+
+
+  <div class="row mt-1 mb-2">
+    <div class="col-2">
+      <button mat-raised-button color="primary" (click)="previousComponent()" style="width:inherit; height:100px;">
+        <p class="button-text">Poprzedni materiał</p>
+        <span class="material-icons button-icon">fast_rewind</span>
+      </button>
+    </div>
+    <div class="col-2">
+      <button mat-raised-button color="primary" (click)="previousDrawing()" style="width: inherit; height: 100px;">
+        <p class="button-text">Poprzedni rysunek</p>
+        <span class="material-icons button-icon">skip_previous</span>
+      </button>
+    </div>
+    <div class="col-2">
+      <button mat-raised-button color="success" (click)="onConfirmCut()" style="width: inherit; height: 100px;"
+              [disabled]="subOrderData.subOrder.data[this.index].inProduction.productionState.name=='Ucięty'">
+        <p class="button-text">Potwierdzenie ucięcia</p>
+        <span class="material-icons button-icon">done</span>
+      </button>
+    </div>
+    <div class="col-2">
+      <button mat-raised-button color="primary" (click)="nextDrawing()" style="width: inherit; height: 100px;">
+        <p class="button-text">Następny rysunek</p>
+        <span class="material-icons button-icon">skip_next</span>
+      </button>
+    </div>
+    <div class="col-2">
+      <button mat-raised-button color="primary" (click)="nextComponent()" style="width: inherit; height: 100px;">
+        <p class="button-text">Następny materiał</p>
+        <span class="material-icons button-icon">fast_forward</span>
+      </button>
+    </div>
+    <div class="col-2">
+      <button mat-raised-button color="warn" (click)="onExit()" style="width: inherit; height: 100px;">
+        <p class="button-text">Wyjście</p>
+        <span class="material-icons button-icon">cancel</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-4 title" style="height: 5rem"><p class="m-0"><strong>Rysunki z tym samym materiałem</strong></p></div>
+    <div class="col-8 title"><p class="m-0"><strong>Książki z tym samym materiałem</strong></p></div>
+  </div>
+  <div class="row">
+    <div class="col-4">
+      <!--<ul class="list-group">
+        <li class="list-group-item">item01</li>
+        <li class="list-group-item">item02</li>
+        <li class="list-group-item">item03</li>
+        <li class="list-group-item">item04</li>
+        <li class="list-group-item">item05</li>
+      </ul>-->
+      <mat-list class="scroll" role="list">
+        <mat-list-item role="listitem" class="list-title">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-2 border-0"><strong>Lp</strong>.</div>
+              <div class="col-5 border-0"><strong>Nr. rysunku</strong></div>
+              <div class="col-5 border-0" style="text-align: center"><strong>status</strong></div>
+            </div>
+          </div>
+        </mat-list-item>
+        <mat-list-item *ngFor="let item of listOfDrawingsWithSameMaterial; index as i" role="listitem" class="list-item"
+                       [ngClass]="{'selectedItem':currentListIndex===i}">
+          <div class="container-fluid">
+            <div class="row"
+                 [ngClass]="{'sameMaterial': subOrderData.subOrder.data[listOfDrawingsWithSameMaterial[currentListIndex].index].inProduction.wareLength
+                   == subOrderData.subOrder.data[item.index].inProduction.wareLength }">
+              <div class="col-2 border-0">
+                {{i+1}}
+              </div>
+              <div class="col-5 border-0">
+                {{item.name}}
+              </div>
+              <div class="col-5 border-0" style="display: flex; justify-content: space-around;"
+                   [ngSwitch]="subOrderData.subOrder.data[item.index].inProduction.productionState.productionStateCode">
+                <mat-icon *ngSwitchCase="1" style="color:red"> hotel</mat-icon>
+                <mat-icon *ngSwitchCase="2" style="color:orangered"> schedule</mat-icon>
+                <mat-icon *ngSwitchCase="3" style="color:darkgoldenrod"> build</mat-icon>
+                <mat-icon *ngSwitchCase="4" style="color:green"> check_circle_outline</mat-icon>
+              </div>
+            </div>
+          </div>
+        </mat-list-item>
+      </mat-list>
+    </div>
+
+    <div class="col-8">
+      <!--<ul class="list-group">
+        <li class="list-group-item">item01</li>
+        <li class="list-group-item">item02</li>
+        <li class="list-group-item">item03</li>
+        <li class="list-group-item">item04</li>
+        <li class="list-group-item">item05</li>
+      </ul>-->
+      <mat-list class="scroll" role="list">
+        <mat-list-item role="listitem" class="list-title">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-1 border-0"><strong>Lp.</strong></div>
+              <div class="col-3 border-0"><strong>Nr. książki</strong></div>
+              <div class="col-3 border-0"><strong>Nr. zlecenia</strong></div>
+              <div class="col-4 border-0"><strong>Nr. podzlecenia</strong></div>
+              <div class="col-1 border-0"><strong>Ilość</strong> </div>
+            </div>
+          </div>
+        </mat-list-item>
+        <div *ngIf="!noWareAssigned; else noElementsBlock">
+          <mat-list-item *ngFor="let item of listOfOrdersWithSameMaterial;index as i" role="listitem" class="list-item"
+                         [ngClass]="{'selectedItem':currentListItem2===i, 'clickable': true}"
+                         (click)="onOrderListClick(i)">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col-1 border-0">{{i+1}}</div>
+                <div class="col-3 border-0">{{item.officeNumber}}</div>
+                <div class="col-3 border-0">{{item.orderNumber}}</div>
+                <div class="col-4 border-0">{{item.subOrderNumber}}</div>
+                <div class="col-1 border-0">{{item.numberOfOccurences}}</div>
+              </div>
+            </div>
+          </mat-list-item>
+        </div>
+      </mat-list>
+    </div>
+  </div>
+  <ng-template noElementsBlock><p class="mt-3 h5" style="color:grey">Brak przypisanego materiału</p></ng-template>
+  <!--<p class="h3">{{subOrderData.subOrder.data[index].inProduction.component.name}}</p>-->
+</div>

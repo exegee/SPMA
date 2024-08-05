@@ -1,0 +1,35 @@
+<h1 mat-dialog-title>{{description}}</h1>
+
+
+
+<mat-dialog-content style="height:200px; width: 1000px; text-align: center;">
+  <h4 class="mb-5">{{stockItem.code}}</h4>
+
+  <div *ngIf="!isStockItemUpdating">
+    <mat-form-field style="width:300px; margin:0; padding:0;min-height:5px; height:40px; font-size: 20px">
+      <input (keydown)="onKeyDownActualQtyInput($event)" matInput placeholder="Ilość" min="1" type="number" [formControl]="stockItemActualQuantityInput" />
+      <span matSuffix>{{stockItem.unit}}</span>
+      <mat-error *ngIf="!stockItemActualQuantityInput.valid ">Podaj ilość!</mat-error>
+    </mat-form-field>
+
+
+    <mat-form-field style="width:300px; padding:0;min-height:5px; height:40px; font-size: 20px; margin-left: 100px;">
+      <input (keydown)="onKeyDownCommentInput($event)" matInput placeholder="Komentarz" type="text" [formControl]="stockItemCommentInput" />
+    </mat-form-field>
+  </div>
+    <div *ngIf="isStockItemUpdating" style="text-align: center;">
+      <mat-spinner class="m-auto"></mat-spinner>
+    </div>
+  
+</mat-dialog-content>
+<mat-dialog-actions class="pb-3 w-100">
+  <div class="col-1 d-flex justify-content-start">
+    <button [disabled]="stockItem.type == 0" mat-raised-button color="warn" class="mr-3 float-left" (click)="onDeleteClick()">Usuń</button>
+  </div>
+  <div class="col d-flex justify-content-end">
+    <button mat-raised-button color="primary" class="mr-3" (click)="onCancelClick()">Anuluj</button>
+    <button mat-raised-button color="success" (click)="onSubmitClick()">Zatwierdź</button>
+  </div>
+</mat-dialog-actions>
+
+

@@ -1,0 +1,61 @@
+<div mat-dialog-title class="text-center" style="font-size:28px;">{{description}}</div>
+
+<mat-dialog-content [formGroup]="form" class="pb-3" style="font-size: 20px;">
+  <div class="row">
+    <div class="col text-center">
+      <mat-form-field style="width: 400px;">
+        <input matInput
+               placeholder="Kod"
+               type="text"
+               formControlName="code">
+        <mat-error *ngIf="!form.get('code').valid ">Kod jest wymagany!</mat-error>
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col text-center">
+      <mat-form-field style="width: 400px;">
+        <input matInput
+               placeholder="Nazwa"
+               type="text"
+               formControlName="name">
+        <mat-error *ngIf="!form.get('name').valid ">Nazwa jest wymagana!</mat-error>
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col text-center">
+      <mat-form-field style="width: 180px;">
+        <input matInput
+               placeholder="Ilość"
+               type="number"
+               formControlName="qty">
+        <mat-error *ngIf="!form.get('qty').valid ">Ilość jest wymagana!</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="col text-center">
+      <mat-form-field style="width: 180px;">
+        <input matInput
+               placeholder="Jednostka miary"
+               type="text"
+               formControlName="unit">
+        <mat-error *ngIf="!form.get('qty').valid ">Jednostka jest wymagana!</mat-error>
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col text-center">
+      <mat-form-field style="width: 400px;">
+        <input matInput
+               type="text"
+               placeholder="Komentarz"
+               formControlName="comment">
+      </mat-form-field>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions class="pb-3 float-right">
+  <button mat-raised-button (click)="onCancel()">Anuluj</button>
+  <button [disabled]="!form.valid" mat-raised-button color="success" (click)="onAddStockItem()">Dodaj</button>
+</mat-dialog-actions>

@@ -1,0 +1,37 @@
+.new-order-container {
+  display: flex;
+  flex-direction: column;
+  /*padding: 0 3rem 1rem 3rem;*/
+}
+
+.input-field {
+  /*padding-left: 5rem;*/
+  margin-bottom: -1.25em;
+  width: 20rem;
+}
+.row-container{
+  display: flex;
+  margin: 0 !important;
+  padding: 0;
+  justify-content: space-around;
+}
+
+.order-name-input {
+  width: 20rem;
+}
+.client-name-input {
+  width: 20rem;
+}
+.order-qty-input {
+  width: 5rem;
+}
+.address-input{
+  width: 15rem;
+}
+.postal-code-input{
+  width: 5rem;
+}
+
+.client-name-row {
+  margin-bottom: -5px; 
+}

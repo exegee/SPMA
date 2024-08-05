@@ -1,0 +1,567 @@
+<div style="width:1675px;">
+  <div *ngIf="!isBomImported && !isBomSorted" class="browse-file-container">
+    <div class="row mb-2">
+      <div class="col px-2">
+        <h5>Wybierz zestawienie listy części</h5>
+        <hr />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-7 d-flex justify-content-start">
+        <mat-form-field class="w-100 pl-1">
+          <input matInput type="text" readonly [formControl]="fileInput" />
+          <mat-placeholder class="placeholder">Lista części</mat-placeholder>
+          <input #fileToUpload type="file" style="display:none;" (change)="onFileSelected($event)">
+          <mat-error *ngIf="!fileInput.valid ">Lista części jest wymagana</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="col-auto d-flex justify-content-end">
+        <button mat-raised-button color="primary" class="pr-3 my-2" (click)="fileToUpload.click()">Przeglądaj<mat-icon class="ml-3">list</mat-icon></button>
+      </div>
+      <div class="col-auto d-flex justify-content-start">
+        <button [disabled]="!fileInput.valid" mat-raised-button color="warn" class="pr-3 my-2" (click)="onUpload()">Importuj<mat-icon class="ml-3">import_contacts</mat-icon></button>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col px-2">
+        <mat-progress-bar mode="determinate" [value]="progress"></mat-progress-bar>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isBomImported && !isBomSorted" class="browse-file-container">
+    <h2 class="text-center">Czekaj, ładuje dane zlecenia ...</h2>
+    <mat-spinner class="m-auto"></mat-spinner>
+  </div>
+
+  <div *ngIf="isBomSorted && isBomImported" style="bottom:500px;">
+    <!--New main order-->
+    <div class="new-book-container">
+      <div class="row">
+        <div class="col-auto">
+          <mat-form-field style="width:300px; margin-left: 0px;">
+            <input #orderValue matInput placeholder="Zlecenie główne" [matAutocomplete]="autoOrder" [formControl]="orderInput" />
+          </mat-form-field>
+          <mat-autocomplete panelWidth="500px" (optionSelected)="onOrderChange($event)" [displayWith]="searchOrderDisplay" style="max-height:800px;" #autoOrder="matAutocomplete" class="default-scroll">
+            <mat-option *ngIf="isLoading" class="is-loading"><mat-spinner diameter="50"></mat-spinner></mat-option>
+            <ng-container *ngIf="!isLoading">
+              <mat-option *ngFor="let order of filteredOrders" [value]="order" style="height:50px; line-height: 11px; margin-bottom: 0px;">
+                <div class="row">
+                  <div class="col-12">
+                    <span><small> {{ order.number }}</small></span>
+                  </div>
+                </div>
+                <br />
+                <small style="color:darkgreen; font-weight: 600;"> {{ order.name }}</small>
+              </mat-option>
+              <mat-divider class="mt-2"></mat-divider>
+            </ng-container>
+          </mat-autocomplete>
+        </div>
+        <div class="col-2 mt-2">
+          <button mat-raised-button color="primary" (click)="onNewOrder()" class="mr-3">Nowe zlecenie</button>
+        </div>
+        <div class="col" *ngIf="selectedOrder.number != null">
+          <h6>{{selectedOrder.name}} ({{selectedOrder.number}})</h6>
+          <span class="pr-5">Utworzono: {{selectedOrder.orderDate | date:'mediumDate':'pl'}}</span>
+          <span class="pr-5">Termin wykonania: {{selectedOrder.requiredDate | date:'mediumDate':'pl'}}</span>
+          <span>Ilość: {{selectedOrder.plannedQty}} szt.</span>
+        </div>
+      </div>
+    </div>
+
+    <!--Imported book-->
+    <div class="new-book-container">
+      <mat-tab-group (selectedTabChange)="onTabSelectionChange($event)">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="example-tab-icon">view_list</mat-icon>
+            Lista części
+          </ng-template>
+          <div class="row">
+            <div class="col-auto" style="width:500px;">
+              <div>
+                <mat-form-field style="width:230px; margin: 5px 20px 0 0; padding:0; min-height:5px; height:40px">
+                  <input matInput placeholder="Numer złożenia (książki)" type="text" [formControl]="bookComponentNumberInput"
+                         [readonly]="bookExist" />
+                  <mat-error *ngIf="!bookComponentNumberInput.valid ">Wprowadź numer książki</mat-error>
+                </mat-form-field>
+                <mat-form-field style="width:80px; margin: 5px 20px 0 0; padding:0; min-height:5px; height:40px">
+                  <input matInput placeholder="Kod" type="text" [formControl]="bookOfficeNumberInput"
+                         [readonly]="bookExist" />
+                  <mat-error *ngIf="!bookOfficeNumberInput.valid ">Kod!</mat-error>
+                </mat-form-field>
+                <mat-form-field style="width:60px; margin:0; padding:0;min-height:5px; height:40px">
+                  <input matInput placeholder="Ilość" min="0" type="number" [formControl]="bookQuantityInput" />
+                  <span matSuffix>szt.</span>
+                  <mat-error *ngIf="!bookQuantityInput.valid ">Ilość!</mat-error>
+                </mat-form-field>
+                <mat-form-field style="width:325px; margin: 5px 10px 0 0; padding:0; min-height:5px; height:50px">
+                  <input matInput placeholder="Nazwa" type="text" [formControl]="bookNameInput"
+                         [readonly]="bookExist" class="text-truncate" />
+                  <mat-error *ngIf="!bookNameInput.valid ">Wprowadź nazwę</mat-error>
+                </mat-form-field>
+                <mat-form-field style="width:120px; margin: 5px 0 0 15px; padding:0; min-height:5px; height:50px">
+                  <input class="text-truncate" matInput placeholder="Numer" type="text" [formControl]="subOrderInput" />
+                  <mat-error *ngIf="!subOrderInput.valid ">Wprowadź numer</mat-error>
+                </mat-form-field>
+                <div class="row">
+                  <div class="col-7"></div>
+                  <div class="col-2" style="margin-left: 6px;">
+                    <button mat-raised-button color="primary" style="min-width:15px; line-height:25px; width:15px; display:inline-flex; justify-content:center;"
+                            (click)="toogleAllStandardComponentsToProduction()">
+                      <img class="cog-img" src="../../../assets/Svgs/cog.svg" height="15" width="15" />
+                    </button>
+                  </div>
+                  <div class="col-3"></div>
+                </div>
+                <mat-list dense style="margin-top: 5px;" appScrollToActive>
+                  <div class="scrollbar" id="style-11">
+                    <div *ngFor="let component of components; let i = index">
+                      <div *ngIf="component.lastSourceType != 5">
+                        <mat-list-item style="height: 25px;"
+                                       [ngClass]="{'font-weight-bold': component.componentType === 1,
+                                                   'list-group-item-primary': selectedComponent.treeNumber === component.treeNumber
+                                                    && selectedComponent.number === component.number}"
+                                       (click)="onSelectedComponent(component)">
+                          <div style="width: 15px; border: 1px solid; height:15px;margin-right:10px; border-radius:15px; background-color:white"
+                               [ngStyle]="{'background-color': component.updated ? 'rgb(255, 224, 83)' : '#fff' &&
+                     component.existInDatabase ? '#00ff21' : '#fff'}">
+
+                          </div>
+                          <!--<div class="col">
+                        <input type="checkbox" />
+                      </div>-->
+                          <div class="col-5 text-truncate" [matTooltip]="component.number"
+                               [ngStyle]="{'padding-left': component.level * 0.5 + 'rem'}">{{component.number}}</div>
+                          <div class="col-1">
+                            <img *ngIf="component.isAdditionallyPurchasable" src="../../../assets/Images/shop_cart.png" height="15" width="15" />
+                          </div>
+                          <div class="col-1">
+                            <img *ngIf="component.ware != null" src="../../../assets/Images/box.png" height="15" width="15" />
+                          </div>
+                          <div class="col-1" appToProductionToggle [(check)]="component.toProduction">
+                            <!--<img *ngIf="component.toProduction" src="../../../assets/Images/cog.png" height="15" width="15" />-->
+                            <!--<div appToProductionToggle [(check)]="component.toProduction"></div>-->
+                          </div>
+                          <div class="mr-auto col-1">
+                            <img *ngIf="component.lastSourceType >= 2" class="mr-3" src="../../../assets/Svgs/fire.svg" height="15" width="15"
+                                 [ngClass]="{'plasma-img': component.lastSourceType === 2, 'laser-img': component.lastSourceType > 2}" />
+                          </div>
+                          <div class="float-right badge badge-primary">{{component.quantity}} ({{component.sumQuantity}})</div>
+                          <div class="ml-2 float-right badge"
+                               [ngClass]="{'badge-danger': component.quantity != component.singlePieceQty,
+                                           'badge-success': component.quantity === component.singlePieceQty}">{{component.singlePieceQty}}</div>
+                        </mat-list-item>
+                        <mat-divider></mat-divider>
+                      </div>
+                    </div>
+                  </div>
+                </mat-list>
+              </div>
+            </div>
+            <div class="col-auto" style="width:610px;">
+              <div style="height: 412px; margin-left: 8px;">
+                <!--<div style="background-image: linear-gradient(to left, whitesmoke, white); height: 350px; margin-left: 8px;">-->
+                <mat-form-field style="width:405px; margin: 5px 15px 0 0;">
+                  <input matInput placeholder="Nazwa" [(ngModel)]="selectedComponent.name" />
+                </mat-form-field>
+                <mat-form-field style="width:4rem; margin: 0 15px 0 0;">
+                  <!-- <input matInput placeholder="Ilość" min="0" type="number" (change)="componentQuantityChange()" [(ngModel)]="selectedComponent.quantity" (input)="onComponentQtyChange(selectedComponent)" />-->
+                  <input matInput placeholder="Ilość" min="0" type="number" (input)="onComponentQtyChange(selectedComponent)" [formControl]="componentQuantityInput" />
+                  <span matSuffix>szt.</span>
+                </mat-form-field>
+
+
+                <mat-form-field style="width:4rem;">
+                  <input readonly matInput placeholder="Suma" value="{{selectedComponent?.sumQuantity}}" />
+                  <span matSuffix>szt.</span>
+                </mat-form-field>
+
+                <div class="row">
+                  <div class="col-5">
+                    <div class="row align-items-center ml-1 mt-2">
+                      <label class="m-0 mr-3 font-weight-bold">Zleć na produkcję:</label>
+                      <mat-slide-toggle [checked]="selectedComponent?.toProduction"
+                                        (change)="onToProductionToggleChange()"
+                                        color="primary">
+                        {{selectedComponent?.toProduction ? 'Tak' : 'Nie'}}
+                      </mat-slide-toggle>
+                    </div>
+                    <div class="row align-items-center ml-1 mt-2">
+                      <label class="m-0 mr-3 font-weight-bold">Część kupna:</label>
+                      <mat-slide-toggle [checked]="selectedComponent?.isAdditionallyPurchasable == true"
+                                        (change)="onCopyToPurchaseListToggleChange($event)"
+                                        color="primary">
+                        {{selectedComponent?.isAdditionallyPurchasable == true ? 'Tak' : 'Nie'}}
+                      </mat-slide-toggle>
+                    </div>
+                  </div>
+                  <div class="col-7" [@divState]="plasmaToggleYesNoState" style="height:70px;">
+                    <div class="row align-items-center ml-3 mt-2">
+                      <label style="margin: 0 10px 0 0; font-weight: bold">Palone:</label>
+                      <mat-slide-toggle [formControl]="plasmaToggleYesNo"
+                                        (change)="onLastSourceTypeChange()"
+                                        color="primary">
+                        {{plasmaToggleYesNo.value ? 'Tak' : 'Nie'}}
+                      </mat-slide-toggle>
+                    </div>
+
+                    <div class="row align-items-center ml-3" *ngIf="plasmaToggleYesNo.value">
+                      <mat-icon style="margin: 0 0 0 15px;">subdirectory_arrow_right</mat-icon>
+                      <label style="margin: 0 10px 0 10px;">Gdzie:</label>
+                      <mat-slide-toggle [formControl]="plasmaToggleOrgin"
+                                        (change)="onLastSourceTypeChange(event)"
+                                        color="primary">
+                        {{plasmaToggleOrgin.value ? 'Inne' : 'S.S.'}}
+                      </mat-slide-toggle>
+                    </div>
+                    <div class="row align-items-center ml-3" *ngIf="plasmaToggleOrgin.value && plasmaToggleYesNo.value">
+                      <mat-icon style="margin: 0 0 0 65px;">subdirectory_arrow_right</mat-icon>
+                      <label style="margin: 0 10px 0 15px;">Powierzony materiał:</label>
+                      <mat-slide-toggle [formControl]="plasmaToggleEntrustedMaterial"
+                                        (change)="onLastSourceTypeChange()"
+                                        color="primary">
+                        {{plasmaToggleEntrustedMaterial.value ? 'Tak' : 'Nie'}}
+                      </mat-slide-toggle>
+                    </div>
+
+                  </div>
+                </div>
+
+                <label class="mt-4 ml-1 font-weight-bold">Produkcja nadmiarowa:</label>
+                <mat-list dense>
+                  <div class="scrollbar-wares" id="style-11">
+                    <div class="row">
+                      <!--<div class="col-2"><h2 mat-subheader class="font-weight-bold">Zlecenie</h2></div>-->
+                      <div class="col-4"><div mat-subheader class="font-weight-bold">Podzlecenie</div></div>
+                      <div class="col-2"><h2 mat-subheader class="font-weight-bold" style="margin-left:10px;">Ilość</h2></div>
+                      <div class="col-4"></div>
+                    </div>
+                    <div *ngIf="reservationComponents.length > 0; then showProductionContent else showNoContent ">
+
+                    </div>
+                    <ng-template #showProductionContent>
+                      <div *ngFor="let component of reservationComponents">
+                        <mat-list-item style="margin-left: -16px">
+                          <!--<div class="col-2">{{component.parentRWItem.orderBook.order.number}}</div>-->
+                          <div class="col-4" style="margin-left:10px;">{{component.parentRWItem.inProduction.orderBook.number}}</div>
+                          <div class="col-2 font-weight-bold" style="margin-left:30px;">{{component.componentQty-component.reservedQty}} szt.</div>
+                          <div class="col-4">
+                            <button mat-raised-button style="min-height:25px; max-height: 25px; line-height:25px;"
+                                    (click)="onReserveInProduction(component)"
+                                    [color]="reserveInProductionButtonColor"
+                                    [disabled]="(component.componentQty-component.reservedQty)<(this.componentQuantityInput.value * this.bookQuantityInput.value)">
+                              <div *ngIf="selectedComponent.inProductionReservation == null; else isReserved">Zarezerwuj</div>
+                              <ng-template #isReserved>Usuń rezerwacje</ng-template>
+                            </button>
+                          </div>
+                        </mat-list-item>
+                        <mat-divider></mat-divider>
+                      </div>
+                    </ng-template>
+                    <ng-template #showNoContent>
+                      <mat-list-item style="margin-left: -16px">
+                        <div class="col-12 font-weight-bold">Detal nie znajduje się w produkcji nadmiarowej</div>
+                      </mat-list-item>
+                      <mat-divider></mat-divider>
+                    </ng-template>
+                  </div>
+                </mat-list>
+
+              </div>
+              <div [@divState]="wareDivState">
+                <div *ngIf="wareDivEnabled">
+                  <div style="height: 220px; margin-left: 8px;">
+                    <form>
+                      <mat-form-field style="width: 250px;">
+                        <mat-label>Magazyn</mat-label>
+                        <mat-select [(value)]="selectedMag">
+                          <mat-option *ngFor="let mag of optimaMags" [value]="mag">{{mag.mag_Symbol}}</mat-option>
+                        </mat-select>
+
+                        <!--<mat-select [(value)]="selectedWarehouse">
+                      <mat-option *ngFor="let mag of warehouses" [value]="mag.name">{{mag.name}}</mat-option>
+                    </mat-select>-->
+                      </mat-form-field>
+                      <mat-form-field style="width:150px; margin-left: 25px;">
+                        <input readonly matInput placeholder="Stan magazynowy" value="{{selectedOptimaItem.twI_Ilosc}}" />
+                        <span matSuffix>{{selectedOptimaItem.twr_JM}}</span>
+                      </mat-form-field>
+                      <mat-form-field class="mr-3 w-100">
+                        <input autofocus #acValue matInput [value]="searchOptimaWarehouseInputValue" placeholder="Towar w magazynie Optimy" [matAutocomplete]="auto" [formControl]="searchOptimaWarehouse" />
+                      </mat-form-field>
+                      <mat-autocomplete panelWidth="572px" (optionSelected)="onSelectedOptimaItem($event)" #auto="matAutocomplete" [displayWith]="searchOptimaWarehouseDisplay" style="max-height:400px;">
+                        <mat-option *ngIf="isLoading" class="is-loading"><mat-spinner diameter="50"></mat-spinner></mat-option>
+                        <ng-container *ngIf="!isLoading">
+                          <mat-option *ngFor="let item of filteredOptimaItems" [value]="item" style="height:50px; line-height: 11px; margin-bottom: 0px;">
+                            <div class="row">
+                              <div class="col-5">
+                                <span [innerHTML]="item.twr_Kod | highlight: acValue.value : true" style="font-size:small;"></span>
+                              </div>
+                              <div class="col-3">
+                                <span><small> {{ item.mag_Symbol }}</small></span>
+                              </div>
+                              <div class="col-4">
+                                <span><small class="float-right font-weight-bold"> {{ item.twI_Ilosc | number : '1.4-4' }} {{ item.twr_JM }}</small></span>
+                              </div>
+                            </div>
+                            <br />
+                            <small style="color:darkgreen; font-weight: 600;">{{ item.twr_Nazwa }}</small>
+                            <mat-divider class="mt-2"></mat-divider>
+                          </mat-option>
+                        </ng-container>
+                      </mat-autocomplete>
+
+                    </form>
+                    <div class="row">
+                      <div class="col-3">
+                        <mat-form-field style="width:122px; margin-left:0rem;" *ngIf="selectedOptimaItem.twr_JM == 'mb' || selectedOptimaItem.twr_JM == 'm'">
+                          <input (keydown)="onKeydownMMInput($event)"
+                                 (change)="wareLengthMMChange()"
+                                 matInput min="0" placeholder="Ilość w mm" type="number"
+                                 [(ngModel)]="wareToBeAddedLengthMM" />
+                          <span matSuffix>mm</span>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-3">
+                        <mat-form-field style="width:122px; margin-left:2rem; margin-right:2.5rem;">
+                          <input (keydown)="onKeydownMInput($event)" (change)="wareLengthMChange()" matInput min="0" placeholder="Ilość w {{selectedOptimaItem? 'mb' : selectedOptimaItem.twI_Ilosc}}" type="number" [(ngModel)]="wareToBeAddedLengthM" />
+                          <span matSuffix>{{selectedOptimaItem.twr_JM}}</span>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-6">
+                        <button class="ml-5" mat-raised-button color="primary" (click)="onAddWareToComponent()" [disabled]="!allowAddWareToComponent">
+                          <mat-icon>add_circle</mat-icon>
+                        </button>
+                        <!--<button class="ml-3" mat-raised-button color="primary" (click)="onPreviousComponent()" [disabled]="!allowPreviousComponent">
+                      <mat-icon>arrow_back</mat-icon>
+                    </button>
+                    <button class="ml-3" mat-raised-button color="primary" (click)="onNextComponent()" [disabled]="!allowNextComponent">
+                      <mat-icon>arrow_forward</mat-icon>
+                    </button>-->
+                      </div>
+                    </div>
+
+
+                    <!--<mat-form-field style="width:76px; margin-left:1.5rem;">
+                  <input matInput placeholder="Ilość" type="number" [(ngModel)]="wareToBeAdded.quantity" />
+                  <span matSuffix>szt.</span>
+                </mat-form-field>-->
+                    <!--<button mat-raised-button color="primary" (click)="onAddWareToComponent()" style="margin-left:2rem;">Dodaj</button>-->
+
+                    <mat-list dense>
+                      <!--<div class="scrollbar-wares" id="style-11">-->
+                      <div class="row">
+                        <div class="col-7"><h2 mat-subheader class="font-weight-bold">Kod</h2></div>
+                        <div class="col-2"><h2 mat-subheader class="font-weight-bold">Ilość</h2></div>
+                        <div class="col-1"><h2 mat-subheader class="font-weight-bold">Jedn.</h2></div>
+                        <!--<div class="col-2 float-left"><h2 mat-subheader class="font-weight-bold">Ilość</h2></div>-->
+                        <div class="col-1"></div>
+                      </div>
+                      <div *ngIf="selectedComponent.ware != null">
+                        <mat-list-item>
+                          <div class="row"></div>
+                          <div class="col-7" style="margin-left: 15px;">{{selectedComponent.ware.code}}</div>
+                          <div class="col-2 font-weight-bold" style="margin-left: 37px;">{{selectedComponent.wareLength | number : '1.3-3'}}</div>
+                          <div class="col-1" style="margin-left: 12px;">{{selectedComponent.wareUnit}}</div>
+                          <!--<div class="col-2" style="margin-left: 5px; margin-right:-30px">{{selectedComponent.wareQuantity}} szt.</div>-->
+
+                          <div class="col-1">
+
+                            <button mat-icon-button>
+                              <mat-icon color="warn" (click)="onDeleteWareFromComponent(selectedComponent)">delete</mat-icon>
+                            </button>
+                          </div>
+                        </mat-list-item>
+                        <mat-divider></mat-divider>
+                        <!--</div>-->
+                      </div>
+                    </mat-list>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div style="font-size: 1.05rem; font-weight: 500; margin-top:10px;">Planowanie produkcji</div>
+              <hr class="my-0" />
+
+              <!--<div style="background-image: linear-gradient(to left, whitesmoke, white); height:615px;">-->
+              <div style="height:615px;">
+
+
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+        <mat-tab *ngIf="isPurchaseItemsPresent">
+          <ng-template mat-tab-label>
+            <mat-icon class="example-tab-icon">shopping_cart</mat-icon>
+            Lista części kupnych
+          </ng-template>
+          <div class="row">
+            <div class="col-4">
+              <!--<div style="font-size: 1.05rem; font-weight: 500;">Książka rysunkowa</div>-->
+              <!--<div style="background-image: linear-gradient(to left, whitesmoke, white);">-->
+              <div>
+                <div class="row pt-2">
+                  <div class="col-8">
+
+                  </div>
+                  <div class="col-2" style="padding-left:55px;">
+                    <button mat-raised-button color="primary" style="min-width:15px; line-height:25px; width:15px; display:inline-flex; justify-content:center;"
+                            (click)="toogleAllPurchaseItemsToProduction()">
+                      <img class="cog-img" src="../../../assets/Svgs/cog.svg" height="15" width="15" />
+                    </button>
+                  </div>
+                  <div class="col-2">
+
+                  </div>
+                </div>
+                <!--<hr class="my-0" />-->
+                <mat-list dense style="margin-top: 0px;">
+                  <div class="scrollbar-purchaselist" id="style-11">
+                    <div *ngFor="let component of components; let i = index">
+                      <div *ngIf="component.lastSourceType == 5 || component.isAdditionallyPurchasable == true">
+                        <mat-list-item style="height: 25px;"
+                                       [ngClass]="{
+                             'list-group-item-primary': selectedPurchaseIndex === i}"
+                                       (click)="onSelectedPurchaseComponent(component, i)">
+                          <div style="width: 15px; border: 1px solid; height:15px;margin-right:10px; border-radius:15px; background-color:white"
+                               [ngStyle]="{'background-color': component.updated ? 'rgb(255, 224, 83)' : '#fff' &&
+                     component.existInDatabase ? '#00ff21' : '#fff'}"></div>
+
+                          <div class="col-7 text-truncate" [matTooltip]="component.number">{{component.number}}</div>
+                          <div class="col-1">
+
+                          </div>
+                          <div class="col-1">
+                            <img *ngIf="component.ware != null" src="../../../assets/Images/box.png" height="15" width="15" />
+                          </div>
+                          <div class="mr-auto col-1" appToProductionToggle [(check)]="component.toProduction" (click)="onPurchaseItemProductionToggleClick(component)">
+                            <!--<img *ngIf="component.toProduction" src="../../../assets/Images/cog.png" height="15" width="15" />-->
+                            <!--<div appToProductionToggle [(check)]="component.toProduction"></div>-->
+                          </div>
+                          <div class="float-right badge badge-primary">{{component.quantity}} ({{component.sumQuantity}})</div>
+                        </mat-list-item>
+                        <mat-divider></mat-divider>
+                      </div>
+                    </div>
+                  </div>
+                </mat-list>
+              </div>
+            </div>
+            <div class="col-8">
+
+              <!--<div style="font-size: 1.05rem; font-weight: 500; margin-top:18px;">Szczegóły</div>-->
+              <!--<hr class="my-0" />-->
+              <!--<div style="background-image: linear-gradient(to left, whitesmoke, white);   margin-left: 8px;">-->
+              <div>
+                <mat-form-field class="mr-4 mt-3" style="width: 785px;">
+                  <input matInput placeholder="Nazwa" [(ngModel)]="selectedPurchaseComponent.name" />
+                </mat-form-field>
+                <mat-form-field style="width: 64px;" class="mr-4">
+                  <!--<input matInput placeholder="Ilość" value="{{selectedPurchaseComponent?.quantity}}" />-->
+                  <input matInput min="0" placeholder="Ilość" type="number" [(ngModel)]="selectedPurchaseComponent.quantity" (input)="onComponentQtyChange(selectedPurchaseComponent)" />
+
+                  <span matSuffix>szt.</span>
+                </mat-form-field>
+
+
+                <mat-form-field style="width: 64px;">
+                  <input readonly matInput placeholder="Suma" value="{{selectedPurchaseComponent?.sumQuantity}}" />
+                  <span matSuffix>szt.</span>
+                </mat-form-field>
+              </div>
+              <!--<div style="font-size: 1.05rem; font-weight: 500; margin-top:18px;">Zapotrzebowanie materiałowe</div>
+          <hr class="my-0" />-->
+              <!--<div style="background-image: linear-gradient(to left, whitesmoke, white);   margin-left: 8px;">-->
+              <div>
+                <div class="row">
+
+                  <div class="col-8">
+
+                    <form>
+                      <mat-form-field style="width: 670px" class="mt-3">
+                        <input (keydown)="onKeydownACValuePurchase($event)" #acValuePurchase matInput [value]="searchPurchaseOptimaWarehouseInputValue" placeholder="Towar w magazynie Optimy" [matAutocomplete]="autoPurchase" [formControl]="searchPurchaseOptimaWarehouse" />
+                      </mat-form-field>
+                      <mat-autocomplete panelWidth="800" (optionSelected)="onPurchaseSelectedOptimaItem($event)" class="default-scroll" #autoPurchase="matAutocomplete" [displayWith]="searchPurchaseOptimaWarehouseDisplay" style="max-height:400px;">
+                        <mat-option *ngIf="isLoading" class="is-loading"><mat-spinner diameter="50"></mat-spinner></mat-option>
+                        <ng-container *ngIf="!isLoading">
+                          <mat-option *ngFor="let item of filteredPurchaseOptimaItems" [value]="item" style="height:50px; line-height: 11px; margin-bottom: 0px;">
+                            <!--<span [innerHTML]="item.twr_Kod | highlight: acValue.value : true" style="font-size:small;"></span>
+                        <small class="float-right font-weight-bold"> {{ item.twI_Ilosc }} {{ item.twr_JM }}</small>-->
+                            w"
+                            <div class="row">
+
+
+                              <div class="col-5">
+                                HT
+                                <span [innerHTML]="item.twr_Kod | highlight: acValuePurchase.value : true" style="font-size:small;"></span>
+                              </div>
+                              <div class="col-3">
+                                <span><small> {{ item.mag_Symbol }}</small></span>
+                              </div>
+                              <div class="col-4">
+                                <span><small class="float-right font-weight-bold"> {{ item.twI_Ilosc | number : '1.4-4' }} {{ item.twr_JM }}</small></span>
+                              </div>
+                            </div>
+                            <br />
+                            <small style="color:darkgreen; font-weight: 600;">{{ item.twr_Nazwa }}</small>
+                            <mat-divider class="mt-2"></mat-divider>
+                          </mat-option>
+                        </ng-container>
+                      </mat-autocomplete>
+                    </form>
+                  </div>
+                  <div class="col-4 mt-3 d-flex align-items-center">
+                    <button class="ml-5" mat-raised-button color="primary" (click)="onAddWareToPurchaseComponent()" [disabled]="!allowAddWareToPurchaseComponent">
+                      <mat-icon>add_circle</mat-icon>
+                    </button>
+                  </div>
+                </div>
+                <mat-list dense>
+                  <div class="scrollbar-wares-purchaselist" id="style-11">
+                    <div class="row w-100">
+                      <div class="col-6"><h2 matSubheader class="font-weight-bold">Kod</h2></div>
+                      <div class="col-5"><h2 matSubheader class="font-weight-bold">Nazwa</h2></div>
+                      <div class="col-1"></div>
+                    </div>
+                    <div *ngIf="selectedPurchaseComponent.ware != null">
+                      <mat-list-item>
+                        <div class="row w-100"></div>
+                        <div class="col-6 pl-0">{{selectedPurchaseComponent.ware.code}}</div>
+                        <div class="col-5 font-weight-bold">{{selectedPurchaseComponent.ware.name}}</div>
+                        <div class="col-1">
+                          <button mat-icon-button>
+                            <mat-icon color="warn" (click)="onDeleteWareFromComponent(selectedPurchaseComponent)">delete</mat-icon>
+                          </button>
+                        </div>
+                      </mat-list-item>
+                      <mat-divider></mat-divider>
+                    </div>
+                  </div>
+                </mat-list>
+              </div>
+
+            </div>
+          </div>
+        </mat-tab>
+
+      </mat-tab-group>
+      
+    </div>
+    <div style="border: 1px solid rgba(0,0,0,.03); box-shadow: 0 2px 2px rgba(0,0,0,.24), 0 0 2px rgba(0,0,0,.12);  margin: 4px;
+    padding:10px; display:flex; justify-content:flex-end">
+      <button [disabled]="!orderInput.valid ||
+            !bookComponentNumberInput.valid ||
+            !bookOfficeNumberInput.valid ||
+            !bookQuantityInput.valid ||
+            !bookNameInput.valid ||
+            !subOrderInput.valid"
+              mat-raised-button color="primary" (click)="onConfirmAddBookToOrder()" class="mr-3">
+        Dodaj
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,132 @@
+<form  [formGroup]="form" (ngSubmit)="onSubmit()">
+  <h1 mat-dialog-title>{{data.title}}</h1>
+
+  <mat-dialog-content>
+    <div class="row">
+      <div class="col-5">
+        <mat-form-field>
+          <mat-label [ngClass]="{customPlaceholder: data.mode == 'edit'}">{{changeNumberPlaceholder()}}</mat-label>
+          <input matInput
+                 formControlName="componentNumber"
+                 #acValue
+                 [errorStateMatcher]="matcher_text"
+                 [matAutocomplete]="componentAuto">
+          <mat-error *ngIf="!form.get('componentNumber').valid">Numer jest nieprawidłowy</mat-error>
+        </mat-form-field>
+        <mat-autocomplete #componentAuto="matAutocomplete" [displayWith]="searchComponentDisplay"
+                          (optionSelected)="onSelectComponentItem($event.option.value)">
+          <mat-option *ngIf="isComponentLoading"><mat-spinner diameter="50"></mat-spinner></mat-option>
+          <ng-container *ngIf="!isComponentLoading">
+            <mat-option *ngFor="let item of filtereComponentItems" [value]="item" style="height:50px; line-height: 11px; margin-bottom: 0px;">
+              <div class="row">
+                <div class="col-8">
+                  <span [innerHTML]="item.number |  highlight: acValue.value : true" style="font-size:small;"></span>
+                </div>
+                <div class="col-4">
+                  <span><small> {{ item.wareLength }} {{ item.wareUnit }}</small></span>
+                </div>
+              </div>
+              <br />
+              <small style="color:darkgreen; font-weight: 600;">{{ item.name }}</small>
+              <mat-divider class="mt-2"></mat-divider>
+            </mat-option>
+          </ng-container>
+        </mat-autocomplete>
+      </div>
+      <div class="col-7">
+              <!--<mat-form-field appearance="fill">
+          <mat-label>Wybrany Magazyn</mat-label>
+          <mat-select [(value)]="selectedMag">
+            <mat-option [value]="mag" *ngFor="let mag of optimaMags">{{ mag.mag_Symbol }}</mat-option>
+          </mat-select>
+        </mat-form-field>-->
+        <mat-form-field>
+          <mat-label [ngClass]="{customPlaceholder: data.mode == 'edit'}">{{changeCodePlaceholder()}}</mat-label>
+          <input matInput
+                 formControlName="materialCode"
+                 #acValue
+                 [errorStateMatcher]="matcher_text"
+                 [matAutocomplete]="wareItemAuto">
+          <mat-error *ngIf="!form.get('materialCode').valid">Kod jest nieprawidłowy</mat-error>
+        </mat-form-field>
+        <mat-autocomplete #wareItemAuto="matAutocomplete" [displayWith]="searchOptimaWarehouseDisplay"
+                          (optionSelected)="onSelectMaterialItem($event.option.value)">
+          <mat-option *ngIf="isWareItemLoading"><mat-spinner diameter="50"></mat-spinner></mat-option>
+          <ng-container *ngIf="!isWareItemLoading">
+            <mat-option *ngFor="let item of filteredOptimaItems" [value]="item" style="height:50px; line-height: 11px; margin-bottom: 0px;">
+                  <div class="row">
+                    <div class="col-5">
+                      <span [innerHTML]="item.twr_Kod | highlight: acValue.value : true" style="font-size:small;"></span>
+                    </div>
+                    <div class="col-3">
+                      <span><small> {{ item.mag_Symbol }}</small></span>
+                    </div>
+                    <div class="col-4">
+                      <span><small class="float-right font-weight-bold"> {{ item.twI_Ilosc | number : '1.4-4' }} {{ item.twr_JM }}</small></span>
+                    </div>
+                  </div>
+                  <br />
+                  <small style="color:darkgreen; font-weight: 600;">{{ item.twr_Nazwa }}</small>
+                  <mat-divider class="mt-2"></mat-divider>
+                </mat-option>
+          </ng-container>
+        </mat-autocomplete>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-2">
+        <mat-form-field>
+          <input matInput
+                 placeholder="Ilość części"
+                 formControlName="plannedQty"
+                 [errorStateMatcher]="matcher_number">
+          <span matSuffix>szt.</span>
+          <mat-error *ngIf="!form.get('plannedQty').valid">Nieprawidłowa wartość</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="col-3 offset-1">
+        <mat-form-field>
+          <input matInput
+                 placeholder="Dodane przez"
+                 formControlName="addedBy">
+          <!--<mat-error *ngIf="!form.get('addedBy').valid">Nieprawidłowa wartość</mat-error>-->
+        </mat-form-field>
+      </div>
+      <div class="col-2 offset-1">
+        <mat-form-field>
+          <input matInput
+                 placeholder="Ilość materiału"
+                 formControlName="sumQty"
+                 readonly>
+          <span matSuffix>{{surplusOrderItem.ware?.unit}}</span>
+          <!--<mat-error *ngIf="!form.get('sumQty').valid">Nieprawidłowa wartość</mat-error>-->
+        </mat-form-field>
+      </div>
+      <div class="col-2 offset-1">
+        <mat-form-field>
+          <input matInput
+                 placeholder="Pobrany materiał"
+                 formControlName="usedQty"
+                 [errorStateMatcher]="matcher_text">
+          <span matSuffix>{{surplusOrderItem.ware?.unit}}</span>
+          <mat-error *ngIf="!form.get('usedQty').valid">Nieprawidłowa wartość</mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <mat-form-field>
+          <input matInput
+                 placeholder="Komentarz"
+                 formControlName="comment">
+          <!--<mat-error *ngIf="!form.get('comment').valid">Nieprawidłowa wartość</mat-error>-->
+        </mat-form-field>
+      </div>
+    </div>
+  </mat-dialog-content>
+  <div mat-dialog-actions class="d-flex justify-content-end">
+    <button mat-raised-button color="warn" cdkFocusInitial [mat-dialog-close]>Anuluj</button>
+    <button *ngIf="data.mode=='new'" type="submit" [disabled]="form.invalid || form.get('plannedQty').disabled" mat-raised-button color="primary">Utwórz</button>
+    <button *ngIf="data.mode=='edit'" type="submit" [disabled]="form.invalid || form.get('plannedQty').disabled" mat-raised-button color="primary">Zapisz</button>
+  </div>
+</form>

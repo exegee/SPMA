@@ -1,0 +1,18 @@
+<!--<div><p class="h1"><strong>Coś poszło nie tak</strong></p></div>-->
+<!--<mat-divider></mat-divider>-->
+<mat-dialog-content>
+  <div class="row mx-2 my-3">
+    <div class="col-auto align-items-center">
+    <img src="../../../assets/Images/warning_img.jpg" alt="warning" style="width: 80px" />
+    </div>
+    <div class="col align-items-center">
+      <h5 class="m-0">{{warningMessage}}</h5>
+    </div>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <div style="margin: auto">
+    <button mat-raised-button color="primary" [mat-dialog-close]="true">Dalej</button>
+    <button mat-raised-button color="warn" [mat-dialog-close]="false">Anuluj</button>
+  </div>
+</mat-dialog-actions>

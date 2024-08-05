@@ -1,0 +1,60 @@
+<div class="books-list-container">
+  <div style="text-align:center; width:100%; margin-top: 10px;" class="row d-flex align-items-center">
+    <div class="col-1">
+      <button mat-raised-button color="success" class="my-2" style="width: 175px;" (click)="onAddStockItem()">
+        Dodaj nowy towar<mat-icon class="ml-1">add</mat-icon>
+      </button>
+    </div>
+    <div class="col">
+      <mat-form-field class="w-50" style="font-size: 20px">
+        <input matInput placeholder="Szukaj" #searchInput>
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="loading-shade" *ngIf="dataSource.loading$ | async">
+    <div class="spinner-border">
+    </div>
+  </div>
+
+  <table mat-table [dataSource]="dataSource" multiTemplateDataRows
+         matSort matSortActive="Code" matSortDirection="asc" matSortDisableClear class="orders-table mt-2">
+
+    <ng-container matColumnDef="Code">
+      <th mat-header-cell *matHeaderCellDef style="width:30%;">Kod</th>
+      <td mat-cell *matCellDef="let item" style="width:30%;">{{item.code}}<p class="mb-0"><small class="text-muted">{{item.name}}</small></p></td>
+    </ng-container>
+    <ng-container matColumnDef="PitQty">
+      <th mat-header-cell *matHeaderCellDef style="width:5%;">Ilośc wg spisu</th>
+      <td mat-cell *matCellDef="let item" style="width:5%;">{{item.pitQty}}</td>
+    </ng-container>
+    <ng-container matColumnDef="ActualQty">
+      <th mat-header-cell *matHeaderCellDef style="width:4%;">Stan bieżący</th>
+      <td mat-cell *matCellDef="let item" style="width:4%;">{{item.actualQty}}</td>
+    </ng-container>
+    <ng-container matColumnDef="DiffQty">
+      <th mat-header-cell *matHeaderCellDef style="width:4%;">Różnica</th>
+      <td mat-cell *matCellDef="let item" style="width:4%;">{{item.diffQty}}</td>
+    </ng-container>
+    <ng-container matColumnDef="Unit">
+      <th mat-header-cell *matHeaderCellDef style="width:4%;">Jm</th>
+      <td mat-cell *matCellDef="let item" style="width:4%;">{{item.unit}}</td>
+    </ng-container>
+    <ng-container matColumnDef="Date">
+      <th mat-header-cell *matHeaderCellDef style="width:5%;">Data</th>
+      <td mat-cell *matCellDef="let item" style="width:5%;">{{item.dateAdded | date:'mediumDate':'pl'}}</td>
+    </ng-container>
+    <ng-container matColumnDef="Comment">
+      <th mat-header-cell *matHeaderCellDef style="width:25%;">Komentarz</th>
+      <td mat-cell *matCellDef="let item" style="width:25%;">{{item.comment}}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+        [class.row-updated]="row.pitQty > 0 && row.type === 0"
+        [class.row-added]="row.type === 1"
+        class="row-hover"
+        (click)="onStockItemClick(row)"></tr>
+
+  </table>
+  <mat-paginator [length]="this.dataSource.dataLength" [pageSize]="15" showFirstLastButtons></mat-paginator>
+</div>

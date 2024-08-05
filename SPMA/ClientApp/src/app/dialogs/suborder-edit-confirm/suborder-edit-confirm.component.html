@@ -1,0 +1,82 @@
+<h1 mat-dialog-title>Potwierdź zmiany</h1>
+
+<mat-dialog-content>
+  Wykryto niezatwierdzone zmiany w następujących elementach. Czy chcesz je zapisać ?
+  <mat-list dense class="h-100 mt-4">
+    <mat-list-item style="padding-right: 0px;">
+      <div class="row w-100" style="height: 40px; background: #03b53a61; display:flex; align-items:center; margin-left: -8px;">
+        <div class="col-5 font-weight-bold">Nazwa</div>
+        <div class="col-1"><img src="../../../assets/Images/cog.png" height="15" width="15" /></div>
+        <div class="col-1"><img src="../../../assets/Svgs/fire.svg" height="15" width="15" /></div>
+        <div class="col-1 font-weight-bold">L.szt.</div>
+        <div class="col-1"><img src="../../../assets/Images/shop_cart.png" height="15" width="15" /></div>
+        <div class="col-3 font-weight-bold" style="text-align: center">Materiał</div>
+      </div>
+    </mat-list-item>
+    <mat-list-item *ngFor="let item of data" style="height:40px; padding-right:0px;">
+      <div class="row w-100" style="margin-left: -8px;">
+        <div class="col-5" style="display:block; align-items:flex-start; flex-direction:column;">
+          <div class="text-truncate">{{item.number}}</div>
+          <div [ngClass]="{'text-danger': item.name == ''}" class="text-truncate">{{item.name == '' ? 'Brak nazwy' : item.name}}</div>
+        </div>
+        <div class="col-1" style="display:flex; align-items:center;">
+          <div *ngIf="item.isInProductionCheck">
+            <img *ngIf="item.isInProductionNew; else isInProduction" src="../../../assets/Images/cog.png" height="15" width="15" />
+          </div>
+        </div>
+        <div class="col-1" style="display:flex; align-items:center;">
+          <div *ngIf="item.sourceTypeCheck">
+            <img *ngIf="item.sourceTypeNew >= 2" class="mr-3" src="../../../assets/Svgs/fire.svg" height="15" width="15"
+                 [ngClass]="{'plasma-img': item.sourceTypeNew === 2, 'laser-img': item.sourceTypeNew > 2}" />
+          </div>
+        </div>
+        <div class="col-1" style="display:flex; align-items:center; justify-content: center;">
+          <div *ngIf="item.quantitiesCheck">
+            {{item.quantitiesNew}}
+          </div>
+          <div *ngIf="item.bookMultiplierCheck">
+             (x{{item.bookMultiplierNew}})
+          </div>
+        </div>
+        <div class="col-1" style="display:flex; align-items:center;">
+          <div *ngIf="item.isAdditionallyPurchasableCheck">
+            <img *ngIf="item.isAdditionallyPurchasableNew; else isAdditionallyPurchasable" src="../../../assets/Images/shop_cart.png" height="15" width="15" />
+          </div>
+        </div>
+        <div class="col-1" style="display:flex; align-items:center; justify-items:center; background:#19e40026; margin-top:-2px; margin-bottom:-2px;">
+          <div *ngIf="item.wareCodeCheck">
+            <img *ngIf="!item.wareCodeNew == ''; else wareCode" src="../../../assets/Images/box.png" height="15" width="15" />
+          </div>
+        </div>
+        <div class="col-1" style="display:flex; align-items:center; justify-items:center; background:#19e40026; margin-top:-2px; margin-bottom:-2px;">
+          <div *ngIf="item.wareLengthCheck">
+            {{item.wareLengthNew}}
+          </div>
+        </div>
+        <div class="col-1" style="display:flex; align-items:center; justify-items:center; background:#19e40026; margin-top:-2px; margin-bottom:-2px;">
+          <div *ngIf="item.wareUnitCheck">
+            {{item.wareUnitNew}}
+          </div>
+        </div>
+      </div>
+      <mat-divider></mat-divider>
+    </mat-list-item>
+  </mat-list>
+</mat-dialog-content>
+
+<mat-dialog-actions class="pt-3 pb-3 float-right">
+  <button mat-raised-button (click)="onCancel()">Anuluj</button>
+  <button mat-raised-button color="primary" (click)="onConfirm()">OK</button>
+</mat-dialog-actions>
+
+<ng-template #isInProduction>
+  <img src="../../../assets/Images/cog.png" height="15" width="15" style="opacity:0.25;" />
+</ng-template>
+<ng-template #isAdditionallyPurchasable>
+  <img src="../../../assets/Images/shop_cart.png" height="15" width="15" style="opacity: 0.25;" />
+</ng-template>
+<ng-template #wareCode>
+  <img src="../../../assets/Images/box.png" height="15" width="15" style="opacity: 0.25;" />
+</ng-template>
+
+

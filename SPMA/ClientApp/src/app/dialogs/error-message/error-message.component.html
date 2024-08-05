@@ -1,0 +1,24 @@
+<div><p class="h1"><strong>Coś poszło nie tak</strong></p></div>
+<mat-divider></mat-divider>
+<mat-dialog-content>
+  <div class="mx-2 my-3">
+    <h5 class="m-0">Wystąpił błąd podczas zapisywania zmian w serwerze sprawdź swoje połączenie internetowe</h5>
+  </div>
+  <mat-divider></mat-divider>
+  <div class="mx-2 my-3">
+    <button *ngIf="!detailsShowed" mat-raised-button (click)="showDetails()">Szczegóły>></button>
+  </div>
+  <div *ngIf="detailsShowed" class="p-2 mb-3" style="background-color: whitesmoke; border-radius: 5px">
+    <h6>
+      name: {{errorMessage.name}}<br>
+      message: {{errorMessage.message}}<br>
+      url: {{errorMessage.url}}<br>
+      ok: {{errorMessage.ok}}<br>
+      status: {{errorMessage.status}}<br>
+      StatusText: {{errorMessage.statusText}}
+    </h6>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions >
+  <div style="margin: auto"><button mat-raised-button color="warn" [mat-dialog-close]="true" style="width: 100px">OK</button></div>
+</mat-dialog-actions>

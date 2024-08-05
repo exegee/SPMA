@@ -1,0 +1,14 @@
+<div mat-dialog-title style="display:flex; flex-direction: column; justify-items: center; align-items: center; height: 50px;">
+  <mat-icon color="warn" style="font-size: 50px;">error</mat-icon>
+</div>
+
+
+<mat-dialog-content>
+  <h6>Wykryto błędy przy wczytywaniu danych podzlecenia do edycji. Szczegółowy kod błędu znajduje się poniżej.</h6>
+  <p></p>
+  <p>"{{message}}"</p>
+</mat-dialog-content>
+
+<mat-dialog-actions class="pt-3 pb-3 float-right">
+  <button mat-raised-button color="primary" (click)="onOK()">OK</button>
+</mat-dialog-actions>

@@ -1,0 +1,787 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col mt-2">
+      <h5>Szczegóły zlecenia {{order?.number}}</h5>
+      <hr />
+    </div>
+  </div>
+
+  <!--BUTTONS-->
+  <div class="row">
+
+    <!--<div class="col-auto mb-3 pr-0">
+      <button class="btn btn-success dropdown-toggle btn-sm mr-1" type="button" attr.id="editMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+              [disabled]="selectedSubOrder.number == null">
+        <span><fa-icon class="fa mr-1" [icon]="faEdit"></fa-icon></span>-->
+    <!--<span *ngIf="isPrinting" class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>-->
+    <!--Edytuj
+      </button>
+      <div class="dropdown-menu" attr.aria-labelledby="editMenu">
+        <button class="dropdown-item" type="button" (click)="onEditBomListClick(selectedSubOrder)">Lista części (BOM)</button>
+        <button class="dropdown-item" type="button" (click)="onEditWaresListClick(selectedSubOrder)">Surowce (cięcie)</button>
+        <button class="dropdown-item" type="button">Lista części handlowych</button>
+      </div>
+    </div>-->
+    <div class="col-auto mb-3 ml-3 pr-0 pl-1">
+      <button mat-raised-button color="primary" [matMenuTriggerFor]="printing" class="dropdown-toggle mr-1">
+        <span *ngIf="!isPrinting"><fa-icon class="fa mr-1" [icon]="faPrint"></fa-icon></span>
+        <span *ngIf="isPrinting" class="spinner-border spinner-border-sm mr-1"></span>
+        Drukuj
+      </button>
+      <mat-menu #printing="matMenu">
+        <button mat-menu-item (click)="onPrintSubOrderListClick()">Lista Podzleceń</button>
+        <button mat-menu-item [disabled]="selectedSubOrder.number == null" (click)="onPrintBomListClick(selectedSubOrder)">Lista części (BOM)</button>
+        <button mat-menu-item [disabled]="selectedSubOrder.number == null" (click)="onPrintWaresListClick(selectedSubOrder)">Surowce (cięcie)</button>
+        <button mat-menu-item [disabled]="selectedSubOrder?.plasmaInList == 0" (click)="onPrintPlazmaInternalCutListClick(selectedSubOrder)">Cięcie CNC (plazma)</button>
+        <button mat-menu-item [disabled]="selectedSubOrder?.plasmaOutList == 0" (click)="onPrintPlazmaExternalCutListClick(selectedSubOrder)">Cięcie CNC (kooperacja)</button>
+        <button mat-menu-item [disabled]="selectedSubOrder?.purchaseList == 0" (click)="onPrintPurchaseListClick(selectedSubOrder)">Lista części handlowych</button>
+        <!--<button class="dropdown-item" type="button">Rozchód wewnętrzny (RW)</button>-->
+      </mat-menu>
+    </div>
+    <div class="col-auto mb-3 pr-0 pl-1">
+      <button mat-raised-button color="primary" [matMenuTriggerFor]="export" class="dropdown-toggle"
+              [disabled]="selectedSubOrder.number == null && !isAnyElementChecked()">
+        <span *ngIf="!isExporting"><fa-icon class="fa mr-1" [icon]="faFileExport"></fa-icon></span>
+        <span *ngIf="isExporting" class="spinner-border spinner-border-sm mr-1"></span>
+        Exportuj
+      </button>
+      <mat-menu #export="matMenu">
+        <!--<button *ngIf="selectedSubOrder.number != null" class="dropdown-item" type="button" data-toggle="modal" data-target="#pickRWXMLdate" (click)="prepareWareListAsyncClick(selectedSubOrder)">Surowce XML (cięcie)</button>--><!--(click)="onExportWareListClick(selectedSubOrder)"-->
+        <button mat-menu-item data-toggle="modal" data-target="#pickRWXMLdate" (click)="onExportMultipleSummaryList(0)" [disabled]="!isAnyElementChecked()">Lista materiałowa zbiorcza(surowce)</button>
+        <button mat-menu-item data-toggle="modal" data-target="#pickRWXMLdate" (click)="onExportMultipleSummaryList(1)" [disabled]="!isAnyElementChecked()">Lista części handlowych zbiorcza</button>
+        <button mat-menu-item data-toggle="modal" data-target="#pickRWXMLdate" (click)="onExportMultipleSummaryList(2)" [disabled]="!isAnyElementChecked()">Cięcie CNC (SS) zbiorcza</button>
+        <button mat-menu-item data-toggle="modal" data-target="#pickRWXMLdate" (click)="onExportMultipleSummaryList(3)" [disabled]="!isAnyElementChecked()">Cięcie CNC (kooperacja) zbiorcza</button>
+        <!--<button class="dropdown-item" type="button">Lista części handlowych (RW Optima)</button>-->
+      </mat-menu>
+    </div>
+
+
+    <div class="col-auto ml-auto">
+      <button mat-raised-button color="orange" (click)="onBookAdding()">
+        <span><fa-icon class="fa mr-1" [icon]="faPlus"></fa-icon></span>
+        Dodaj książkę z istniejącego zlecenia
+      </button>
+    </div>
+
+  </div>
+
+  <!--************TABLE***************-->
+  <div class="row table-scroll">
+    <div class="col p-0">
+      <table mat-table [dataSource]="filteredOrderBooks" multiTemplateDataRows
+             matSort matSortActive="Number" matSortDirection="asc" matSortDisableClear class="mt-2">
+
+        <ng-container matColumnDef="Position">
+          <th mat-header-cell *matHeaderCellDef style="width:5%;">#</th>
+          <td mat-cell *matCellDef="let suborder" style="width:5%;">{{suborder.position+1}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="Select">
+          <th mat-header-cell *matHeaderCellDef style="padding-top: 10px; width:5%">
+            <mat-checkbox (change)="$event ? masterToggle(): null"
+                          [checked]="selection.hasValue() && isAllSelected()"
+                          [indeterminate]="selection.hasValue() && !isAllSelected()"
+                          color="primary">
+            </mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let row" style="padding-top: 10px; width: 5%">
+            <mat-checkbox (click)="$event.stopPropagation()"
+                          (change)="$event ? selection.toggle(row) : null"
+                          [checked]="selection.isSelected(row)"
+                          color="primary">
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="Number">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header style="width:15%;" class="sortable">Numer</th>
+          <td mat-cell *matCellDef="let suborder" style="width:15%;" class="pl-2">{{suborder.number}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="Name">
+          <th mat-header-cell *matHeaderCellDef style="width:30%;">Nazwa</th>
+          <td mat-cell *matCellDef="let suborder" style="width:30%;">{{suborder.book.officeNumber}} - {{suborder.book.name}}</td>
+        </ng-container>
+        <ng-container matColumnDef="ComponentNumber">
+          <th class="sortable" mat-header-cell *matHeaderCellDef mat-sort-header style="width:15%;">Numer części</th>
+          <td mat-cell *matCellDef="let suborder" style="width:15%;">{{suborder.componentNumber}}</td>
+        </ng-container>
+        <ng-container matColumnDef="Finished">
+          <th mat-header-cell *matHeaderCellDef style="width:10%;">Ukończonych</th>
+          <td mat-cell *matCellDef="let suborder" style="width:10%;">{{suborder.finishedQty}} / {{suborder.plannedQty}}</td>
+        </ng-container>
+        <ng-container matColumnDef="OrderDate">
+          <th class="sortable" mat-header-cell *matHeaderCellDef mat-sort-header style="width:15%;">Termin wykonania</th>
+          <td mat-cell *matCellDef="let suborder" style="width:15%;">{{suborder.addedDate | date:'mediumDate':'pl'}}</td>
+        </ng-container>
+
+        <!-- Header row first group disabled -->
+        <ng-container matColumnDef="disabledInput">
+          <th mat-header-cell *matHeaderCellDef></th>
+        </ng-container>
+
+        <!-- Header row second group Order Number -->
+        <ng-container matColumnDef="NumberInput">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-form-field style="width: 85%">
+              <input matInput  placeholder="Numer" #subordernumberfilter class="search-input" [formControl]="numberInput"
+                     (input)="filterSuborders()">
+              <button mat-button *ngIf="subordernumberfilter.value" matSuffix mat-icon-button aria-label="Clear" (click)="onNumberInputClear()">
+                <mat-icon class="close-icon">close</mat-icon>
+              </button>
+            </mat-form-field>
+          </th>
+        </ng-container>
+
+        <!-- Header row second group Order Name -->
+        <ng-container matColumnDef="NameInput">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-form-field style="width: 85%;">
+              <input matInput  placeholder="Nazwa" #descriptionfilter class="search-input" [formControl]="descriptionInput"
+                     (input)="filterSuborders()">
+              <button mat-button *ngIf="descriptionfilter.value" matSuffix mat-icon-button aria-label="Clear" (click)="onDescriptionInputClear()">
+                <mat-icon class="close-icon">close</mat-icon>
+              </button>
+            </mat-form-field>
+          </th>
+        </ng-container>
+
+        <!-- Header row second group Order Client Name-->
+        <ng-container matColumnDef="ComponentNumberInput">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-form-field style="width: 85%;">
+              <input matInput  placeholder="Numer części" #componentnumberfilter class="search-input" [formControl]="componentNumberInput"
+                     (input)="filterSuborders()">
+              <button mat-button *ngIf="componentnumberfilter.value" matSuffix mat-icon-button aria-label="Clear" (click)="onComponentNumberInputClear()">
+                <mat-icon class="close-icon">close</mat-icon>
+              </button>
+            </mat-form-field>
+          </th>
+        </ng-container>
+
+        <ng-container matColumnDef="expandedDetail">
+          <td mat-cell *matCellDef="let suborder"  [attr.colspan]="displayedColumns.length">
+            <div class="example-element-detail" 
+                 [@detailExpand]="suborder == expandedElement ? 'expanded' : 'collapsed'"id="{suborder.orderBookId}">
+              <div class="my-2">
+                <mat-card style="padding: 10px 0px 10px 0px">
+                  <mat-list>
+                    <mat-list-item>
+                      <div class="container-fluid p-0">
+                        <div class="row">
+                          <div class="col-2 d-flex align-items-center">Lista części (BOM)</div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <button class="small-button" mat-raised-button color="primary" (click)="onPrintBomListClick(suborder)">
+                              <span><fa-icon class="fa mr-1" [icon]="faPrint"></fa-icon></span>
+                              Drukuj
+                            </button>
+                          </div>
+                          <div class="col-1"></div>
+                          <div class="col-2"></div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <h6 class="title">Numer RW</h6>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <h6 class="title">Bufor</h6>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <h6 class="title">Wartość netto</h6>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <h6 class="title">Data dokumentu</h6>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <h6 class="title">Data operacji</h6>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <h6 class="title">Wprowadził</h6>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-list-item>
+                    <mat-list-item>
+                      <div class="container-fluid p-0">
+                        <div class="row">
+                          <div class="col-2 d-flex align-items-center">
+                            Lista materiałowa (surowce)
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <button class="small-button" mat-raised-button color="primary" (click)="onPrintWaresListClick(suborder)">
+                              <span><fa-icon class="fa mr-1" [icon]="faPrint"></fa-icon></span>
+                              Drukuj
+                            </button>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <button class="small-button" mat-raised-button color="primary" type="button" data-toggle="modal" data-target="#pickRWXMLdate" (click)="prepareWareListAsyncClick(suborder, 0)">
+                              <span><fa-icon class="fa mr-1" [icon]="faFileExport"></fa-icon></span>
+                              Eksportuj
+                            </button>
+                          </div>
+                          <div class="col-2 d-flex align-items-center justify-content-start">
+                            <button class="small-button" style="padding-left: 10px;" mat-raised-button color="primary" type="button" data-toggle="modal" data-target="#pickRWXMLdate" (click)="prepareWareListAsyncClickSMList(suborder, 0)">
+                              <span><fa-icon class="fa mr-1" [icon]="faFileExport"></fa-icon></span>
+                              Lista Zbiorcza
+                            </button>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[0]">
+                              {{subOrderRWS[0]?.trN_NumerPelny}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div *ngIf="isCheckingRWS">
+                              <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                              </div>
+                            </div>
+                            <div *ngIf="!isCheckingRWS">
+                              <img rel="prefetch" *ngIf="subOrderRWS[0]?.trN_Bufor === 1; else noRWInBuffer" src="../../../assets/Images/button_check_yellow.png" height="30" width="30" />
+                              <ng-template #noRWInBuffer>
+                                <img rel="prefetch" *ngIf="subOrderRWS[0]?.trN_Bufor === 0; else noRWRecord" src="../../../assets/Images/button_check_green.png" height="30" width="30" />
+                              </ng-template>
+                              <ng-template #noRWRecord>
+                                <img rel="prefetch" *ngIf="checkSubOrderRWSCompleted" src="../../../assets/Images/exclamation_circle_red.png" height="30" width="30" />
+                              </ng-template>
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[0]">
+                              {{(subOrderRWS[0]?.trN_RazemNetto == null && checkSubOrderRWSCompleted == true)  ? "b/d" : subOrderRWS[0]?.trN_RazemNetto | currency:'PLN'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[0]">
+                              {{(subOrderRWS[0]?.trN_DataDok == null && checkSubOrderRWSCompleted == true)  ? "b/d" : subOrderRWS[0]?.trN_DataDok | date:'mediumDate':'pl'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[0]">
+                              {{(subOrderRWS[0]?.trN_DataOpe == null && checkSubOrderRWSCompleted == true)  ? "b/d" : subOrderRWS[0]?.trN_DataOpe | date:'mediumDate':'pl'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[0]">
+                              {{subOrderRWS[0]?.trN_OpeModNazwisko}}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-list-item>
+                    <mat-list-item *ngIf="suborder.plasmaInList">
+                      <div class="container-fluid p-0">
+                        <div class="row">
+                          <div class="col-2 d-flex align-items-center">
+                            Cięcie CNC (plazma)
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <button class="small-button" mat-raised-button color="primary" type="button" (click)="onPrintPlazmaInternalCutListClick(suborder)">
+                              <span><fa-icon class="fa mr-1" [icon]="faPrint"></fa-icon></span>
+                              Drukuj
+                            </button>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <button class="small-button" mat-raised-button color="primary" type="button" data-toggle="modal" data-target="#pickRWXMLdate" (click)="prepareWareListAsyncClick(suborder, 2)">
+                              <span><fa-icon class="fa mr-1" [icon]="faFileExport"></fa-icon></span>
+                              Eksportuj
+                            </button>
+                          </div>
+                          <div class="col-2 d-flex align-items-center justify-content-start">
+                            <button class="small-button" style="padding-left: 10px;" mat-raised-button color="primary" type="button" data-toggle="modal" data-target="#pickRWXMLdate" (click)="prepareWareListAsyncClickSMList(suborder, 2)">
+                              <span><fa-icon class="fa mr-1" [icon]="faFileExport"></fa-icon></span>
+                              Lista Zbiorcza
+                            </button>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[1]">
+                              {{subOrderRWS[1]?.trN_NumerPelny}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div *ngIf="isCheckingRWS">
+                              <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                              </div>
+                            </div>
+                            <div *ngIf="!isCheckingRWS">
+                              <img rel="prefetch" *ngIf="subOrderRWS[1]?.trN_Bufor === 1; else noRWInBuffer" src="../../../assets/Images/button_check_yellow.png" height="30" width="30" />
+                              <ng-template #noRWInBuffer>
+                                <img rel="prefetch" *ngIf="subOrderRWS[1]?.trN_Bufor === 0; else noRWRecord" src="../../../assets/Images/button_check_green.png" height="30" width="30" />
+                              </ng-template>
+                              <ng-template #noRWRecord>
+                                <img rel="prefetch" *ngIf="checkSubOrderRWSCompleted" src="../../../assets/Images/exclamation_circle_red.png" height="30" width="30" />
+                              </ng-template>
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[1]">
+                              {{(subOrderRWS[1]?.trN_RazemNetto == null && checkSubOrderRWSCompleted == true) ? "b/d" : subOrderRWS[1]?.trN_RazemNetto | currency:'PLN'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[1]">
+                              {{(subOrderRWS[1]?.trN_DataDok == null && checkSubOrderRWSCompleted == true) ? "b/d" : subOrderRWS[1]?.trN_DataDok | date:'mediumDate':'pl'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[1]">
+                              {{(subOrderRWS[1]?.trN_DataOpe == null && checkSubOrderRWSCompleted == true) ? "b/d" : subOrderRWS[1]?.trN_DataOpe | date:'mediumDate':'pl'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[1]">
+                              {{subOrderRWS[1]?.trN_OpeModNazwisko}}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-list-item>
+                    <mat-list-item *ngIf="suborder.plasmaOutList">
+                      <div class="container-fluid p-0">
+                        <div class="row">
+                          <div class="col-2 d-flex align-items-center">
+                            Cięcie CNC (kooperacja)
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <button class="small-button" mat-raised-button color="primary" type="button" (click)="onPrintPlazmaExternalCutListClick(suborder)">
+                              <span><fa-icon class="fa mr-1" [icon]="faPrint"></fa-icon></span>
+                              Drukuj
+                            </button>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <button class="small-button" mat-raised-button color="primary" type="button" data-toggle="modal" data-target="#pickRWXMLdate" (click)="prepareWareListAsyncClick(suborder, 3)">
+                              <span><fa-icon class="fa mr-1" [icon]="faFileExport"></fa-icon></span>
+                              Eksportuj
+                            </button>
+                          </div>
+                          <div class="col-2 d-flex align-items-center justify-content-start">
+                            <button class="small-button" style="padding-left: 10px;" mat-raised-button color="primary" type="button" data-toggle="modal" data-target="#pickRWXMLdate" (click)="prepareWareListAsyncClickSMList(suborder, 3)">
+                              <span><fa-icon class="fa mr-1" [icon]="faFileExport"></fa-icon></span>
+                              Lista Zbiorcza
+                            </button>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[2]">
+                              {{subOrderRWS[2]?.trN_NumerPelny}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div *ngIf="isCheckingRWS">
+                              <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                              </div>
+                            </div>
+                            <div *ngIf="!isCheckingRWS">
+                              <img rel="prefetch" *ngIf="subOrderRWS[2]?.trN_Bufor === 1; else noRWInBuffer" src="../../../assets/Images/button_check_yellow.png" height="30" width="30" />
+                              <ng-template #noRWInBuffer>
+                                <img rel="prefetch" *ngIf="subOrderRWS[2]?.trN_Bufor === 0; else noRWRecord" src="../../../assets/Images/button_check_green.png" height="30" width="30" />
+                              </ng-template>
+                              <ng-template #noRWRecord>
+                                <img rel="prefetch" *ngIf="checkSubOrderRWSCompleted" src="../../../assets/Images/exclamation_circle_red.png" height="30" width="30" />
+                              </ng-template>
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[2]">
+                              {{(subOrderRWS[2]?.trN_RazemNetto == null && checkSubOrderRWSCompleted == true) ? "b/d" : subOrderRWS[2]?.trN_RazemNetto | currency:'PLN'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[2]">
+                              {{(subOrderRWS[2]?.trN_DataDok == null && checkSubOrderRWSCompleted == true) ? "b/d" : subOrderRWS[2]?.trN_DataDok | date:'mediumDate':'pl' }}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[2]">
+                              {{(subOrderRWS[2]?.trN_DataOpe == null && checkSubOrderRWSCompleted == true)  ? "b/d" : subOrderRWS[2]?.trN_DataOpe | date:'mediumDate':'pl'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[2]">
+                              {{subOrderRWS[2]?.trN_OpeModNazwisko}}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-list-item>
+                    <mat-list-item *ngIf="suborder.purchaseList">
+                      <div class="container-fluid p-0">
+                        <div class="row">
+                          <div class="col-2 d-flex align-items-center">
+                            Lista części handlowych
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <button class="small-button" mat-raised-button color="primary" type="button" (click)="onPrintPurchaseListClick(suborder)">
+                              <span><fa-icon class="fa mr-1" [icon]="faPrint"></fa-icon></span>
+                              Drukuj
+                            </button>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <button class="small-button" mat-raised-button color="primary" type="button" data-toggle="modal" data-target="#pickRWXMLdate" (click)="prepareWareListAsyncClick(suborder, 1)">
+                              <span><fa-icon class="fa mr-1" [icon]="faFileExport"></fa-icon></span>
+                              Eksportuj
+                            </button>
+                          </div>
+                          <div class="col-2 d-flex align-items-center">
+                            <button class="small-button" style="padding-left: 10px;" mat-raised-button color="primary" type="button" data-toggle="modal" data-target="#pickRWXMLdate" (click)="prepareWareListAsyncClickSMList(suborder, 1)">
+                              <span><fa-icon class="fa mr-1" [icon]="faFileExport"></fa-icon></span>
+                              Lista Zbiorcza
+                            </button>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[3]">
+                              {{subOrderRWS[3]?.trN_NumerPelny}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div *ngIf="isCheckingRWS">
+                              <div class="spinner-border spinner-border-sm text-primary pt-1" role="status">
+                                <span class="sr-only">Loading...</span>
+                              </div>
+                            </div>
+                            <div *ngIf="!isCheckingRWS">
+                              <img rel="prefetch" *ngIf="subOrderRWS[3]?.trN_Bufor === 1; else noRWInBuffer" src="../../../assets/Images/button_check_yellow.png" height="30" width="30" />
+                              <ng-template #noRWInBuffer>
+                                <img rel="prefetch" *ngIf="subOrderRWS[3]?.trN_Bufor === 0; else noRWRecord" src="../../../assets/Images/button_check_green.png" height="30" width="30" />
+                              </ng-template>
+                              <ng-template #noRWRecord>
+                                <img rel="prefetch" *ngIf="checkSubOrderRWSCompleted" src="../../../assets/Images/exclamation_circle_red.png" height="30" width="30" />
+                              </ng-template>
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[3]">
+                              {{(subOrderRWS[3]?.trN_RazemNetto == null && checkSubOrderRWSCompleted == true) ? "b/d" : subOrderRWS[3]?.trN_RazemNetto | currency:'PLN'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[3]">
+                              {{(subOrderRWS[3]?.trN_DataDok == null && checkSubOrderRWSCompleted == true) ? "b/d" : subOrderRWS[3]?.trN_DataDok | date:'mediumDate':'pl'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[3]">
+                              {{(subOrderRWS[3]?.trN_DataOpe == null && checkSubOrderRWSCompleted == true) ? "b/d" : subOrderRWS[3]?.trN_DataOpe | date:'mediumDate':'pl'}}
+                            </div>
+                          </div>
+                          <div class="col-1 d-flex align-items-center justify-content-center">
+                            <div [@blurProgress]="blurProgress[3]">
+                              {{subOrderRWS[3]?.trN_OpeModNazwisko}}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </mat-list-item>
+                  </mat-list>
+                  <div class="container-fluid pt-3">
+                    <div class="row">
+                      <div class="col-6"></div>
+                      <div class="col-2">
+                        <div class="row p-border mx-3">
+                          <div class="col-6 d-flex align-items-center justify-content-center">
+                            <p class="m-0"><strong>Uciętych<br>Piła</strong></p>
+                          </div>
+                          <div class="col-6 d-flex align-items-center justify-content-center">
+                            <p *ngIf="cutStatuses[selectedSubOrder.position]?.sawStatusPercentage>=0" class="m-0">{{cutStatuses[selectedSubOrder.position]?.sawStatusPercentage}}%</p>
+                            <!--<p *ngIf="!(cutStatuses[selectedSubOrder.position]?.sawStatusPercentage>=0)" class="m-0">X</p>-->
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-2">
+                        <div class="row p-border mx-3">
+                          <div class="col-6 d-flex align-items-center justify-content-center">
+                            <p class="m-0"><strong>Uciętych<br>Plazma</strong></p>
+                          </div>
+                          <div class="col-6 d-flex align-items-center justify-content-center">
+                            <p *ngIf="cutStatuses[selectedSubOrder.position]?.plasmaStatusPercentage>=0" class="m-0">{{cutStatuses[selectedSubOrder.position]?.plasmaStatusPercentage}}%</p>
+                            <!--<p *ngIf="!(cutStatuses[selectedSubOrder.position]?.plasmaStatusPercentage>=0)" class="m-0">X</p>-->
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="container-fluid">
+                    <div class="row d-flex justify-content-start align-items-end pt-3">
+                      <div class="col-1">
+                        <button type="button" mat-raised-button color="warn" class="butt-button ml-3" (click)="onDeleteSubOrderClick(suborder)"
+                                data-toggle="modal" data-target="#confirmDeleteSubOrder" style="width:120px; height: 40px;">
+                          <div *ngIf="(deletingSubOrder && subOrderToDelete !== item) || !deletingSubOrder">
+                            <span><fa-icon class="fa mr-2" [icon]="faTrashAlt"></fa-icon></span>
+                            Usuń
+                          </div>
+                          <div *ngIf="deletingSubOrder && subOrderToDelete == suborder">
+                            <span class="spinner-border spinner-border-sm"></span>
+                            Usuwam...
+                          </div>
+                        </button>
+                      </div>
+                      <div class="col-1">
+                        <button type="button" mat-raised-button color="green" class="butt-button ml-4" style="width:120px; height: 40px;"
+                                (click)="onEditSubOrder(suborder)">
+                          Edytuj
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </mat-card>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-header-row *matHeaderRowDef="['disabledInput','disabledInput','NumberInput','ComponentNumberInput','NameInput','disabledInput','disabledInput']; sticky: true"></tr>
+        <tr mat-row *matRowDef="let suborder; columns: displayedColumns;"
+            class="example-element-row"
+            [class.example-expanded-row]="expandedElement === suborder"
+            (click)="onDetailExpand(suborder)"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="example-detail-row"></tr>
+      </table>
+
+    </div>
+  </div>
+
+
+
+  <!-- ***************** MODALS *****************-->
+  <!-- Confirm delete suborder from order -->
+  <div class="modal fade" id="confirmDeleteSubOrder">
+    l-
+    <div class="modal-dialog">
+      lo
+      c
+      <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          r"
+          t-
+          <h4 class="modal-title text-center">Usuwanie podzlecenia</h4>
+          <button type="button" class="close" data-dismiss="modal">
+            ta
+            &times;
+          </button>
+          ta
+        </div>
+
+        <!-- Modal body -->
+        <div class="modal-body text-center">
+          Czy na pewno chcesz usunąć podzlecenie {{subOrderToDelete?.number}} ?
+        </div>
+
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger w-25" data-dismiss="modal" (click)="onDeleteSubOrder()">Tak</button>
+          <button type="button" class="btn btn-success w-25" data-dismiss="modal">Nie</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RW XML Datepicker -->
+  <div class="modal fade" id="pickRWXMLdate">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title text-center">Eksport dokumentu RW do XML</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="modal-body text-center">
+          <div *ngIf="!loadingWares; else loading">
+            <form class="form-row" [formGroup]="form" *ngIf="!isSummaryList">
+              <div class="col-3 form-inline">
+                <!--<div><label for="rwDateInput" class="mr-4 mt-1">Data dokumentu RW</label></div>
+                <div class="input-group pull-right">
+                  <input id="rwDateInput" class="form-control" placeholder="rrrr-mm-dd"
+                         name="dp" [(ngModel)]="rwDate"  ngbDatepicker #d="ngbDatepicker" (ngModelChange)="onRWXMLDateChange()">
+                  <div class="input-group-append">
+                    <button class="btn btn-outline-primary" (click)="d.toggle()" type="button">
+                      <span><fa-icon class="fa" [icon]="faCalendarAlt"></fa-icon></span>
+                    </button>
+                  </div>
+                </div>-->
+
+                <mat-form-field>
+                  <input matInput [matDatepicker]="picker" placeholder="Data dokumentu RW" (dateChange)="onRWXMLDateChange()" formControlName="rwDate">
+                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+
+              </div>
+              <div class="col-3 form-inline">
+                <mat-form-field style="width: 250px;">
+                  <mat-label>Magazyn</mat-label>
+                  <mat-select [(value)]="selectedMag" (selectionChange)="onRWXMLMagChange()">
+                    <mat-option *ngFor="let mag of optimaMags" [value]="mag">{{mag.mag_Symbol}}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <!--<div class="col form-inline">
+                <div><label class="mr-2" for="rwUpdateQuantitiesCheckBox">Zaktualizuj ilości</label></div>
+                <input [ngModelOptions]="{standalone: true}" [(ngModel)]="rwUpdateQuantities" type="checkbox" class="form-check-input form-control" id="rwUpdateQuantitiesCheckBox" />
+              </div>-->
+            </form>
+            <ul class="list-group mt-2">
+              <li class="list-group-item">
+                <div class="row text-left align-items-center">
+                  <div class="col-4">
+                    <b>Kod towaru</b>
+                  </div>
+                  <div class="col-8">
+                    <div class="row">
+                      <div class="col text-center" *ngIf="!isSummaryList">
+                        <div *ngIf="xmlListType == 0">
+                          <b>Szt.</b>
+                        </div>
+                      </div>
+                      <div class="col text-center" *ngIf="!isSummaryList">
+                        <div *ngIf="xmlListType == 0">
+                          <b>J.m./szt.</b>
+                        </div>
+                      </div>
+                      <div class="col text-center">
+                        <b>Łącznie</b>
+                      </div>
+                      <div class="col text-center">
+                        <b>J.m.</b>
+                      </div>
+                      <div class="col text-center" *ngIf="!isSummaryList">
+                        <b>Dostępne</b>
+                      </div>
+                      <!--<div class="col-2 text-center">
+                        <b>Wydano</b>
+                      </div>-->
+                      <div class="col text-center">
+                        <b>Do wydania</b>
+                      </div>
+                      <!--<div class="col-1 text-center">
+                      </div>-->
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li class="list-group-item list-group-item-action py-0"
+                  *ngFor="let item of wareList; let i = index">
+                <div class="row text-left align-items-center">
+                  <div class="col-4">
+
+                    <!--<div class="row">
+                      <div class="col-auto">
+                        {{item.wareCode}}
+                      </div>
+                    </div>
+                    <div class="row">-->
+                    <!--<div class="col-auto">-->
+                    <small class="text-secondary font-weight-bold">{{xmlListType == 3 ? item.wareCode : item.wareName}}</small>
+                    <!--</div>-->
+                    <!--</div>-->
+                  </div>
+                  <div class="col-8 align-middle">
+                    <div class="row align-items-center">
+                      <div class="col text-center" *ngIf="!isSummaryList">
+                        <div *ngIf="xmlListType == 0">
+                          {{item.wareQuantity}}
+                        </div>
+                      </div>
+                      <div class="col text-center" *ngIf="!isSummaryList">
+                        <div *ngIf="xmlListType == 0">
+                          {{item.wareLength}}
+                        </div>
+                      </div>
+                      <div class="col text-success font-weight-bold text-center">
+                        {{item.totalToIssue | number : '1.3-3'}}
+                      </div>
+                      <div class="col text-center">
+                        {{item.wareUnit}}
+                      </div>
+                      <div class="col text-center" *ngIf="!isSummaryList">
+                        <div *ngIf="item.qCheckStatus == 0">
+                          b/d
+                        </div>
+                        <div *ngIf="item.qCheckStatus == 1">
+                          <span class="spinner-border text-success spinner-border-sm"></span>
+                        </div>
+                        <div *ngIf="item.qCheckStatus > 1" class="font-weight-bold text-center">
+                          {{item.qAvailable | number : '1.3-3'}}
+                        </div>
+                      </div>
+
+                      <!--<div class="col-3 font-weight-bold" [ngClass]="{'text-success': item.qcheckstatus == 2,
+                                                    'text-warning': item.qcheckstatus == 3,
+                                                    'text-danger': item.qcheckstatus == 4}">
+                        {{item.issued}}
+                      </div>-->
+                      <!--<div class="col-2 text-center">
+                        {{item.issued}}
+                      </div>-->
+                      <div class="col d-flex justify-content-center">
+                        <!--<div class="form-group" [ngClass]="{'has-error': !totalWA.valid}">-->
+                        <input name="totalWA-{{i}}"
+                               type="number"
+                               #totalWA="ngModel"
+                               [(ngModel)]="item.toIssue"
+                               step="0.001"
+                               required
+                               ng-pattern="/^[0-9]+(\.[0-9]{1,3})?$/"
+                               class="form-control m-1 font-weight-bold"
+                               [ngClass]="{'text-success': item.qCheckStatus == 2,
+                                       'text-warning': item.qCheckStatus == 3,
+                                       'text-danger': item.qCheckStatus == 4}
+                                        " />
+
+                      </div>
+                      <!--<div class="col-1 px-0">
+                        <span class="help-block text-danger font-weight-bold ml-2" *ngIf="!totalWA.valid">Błąd !</span>
+                        <img rel="prefetch" *ngIf="!totalWA.valid" src="../../../assets/Images/check_basic_red.png" height="20" width="20" />
+                        <img rel="prefetch" *ngIf="totalWA.valid" src="../../../assets/Images/check_basic_green.png" height="20" width="20" />
+                      </div>-->
+                      <!--</div>-->
+                      <!--<div class="col-2">
+                        <img *ngIf="item.qcheckstatus == 0" src="../../../assets/Images/check_green.png" height="20" width="20" />
+                      </div>-->
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger w-25" data-dismiss="modal" (click)="onExportWareListClick()">Eksportuj</button>
+          <button type="button" class="btn btn-success w-25" data-dismiss="modal" (click)="onCloseExportToXMLClick()">Zamknij</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<ng-template #loading>
+  <h2>Pobieram dane...</h2>
+  <div class="spinner-border mt-2" style="width: 3rem; height: 3rem;" role="status">
+    <span class="sr-only">Ładuję...</span>
+  </div>
+</ng-template>
+
+
+<context-menu>
+  <ng-template contextMenuItem let-item [passive]="true" [enabled]="false">
+    <b>{{item?.number}}</b>
+  </ng-template>
+  <ng-template contextMenuItem divider="true"></ng-template>
+  <ng-template contextMenuItem [subMenu]="printSubMenu">
+    Drukuj
+  </ng-template>
+  <context-menu #printSubMenu>
+    <ng-template contextMenuItem>Lista części (BOM)</ng-template>
+    <ng-template contextMenuItem>Surowce (cięcie)</ng-template>
+  </context-menu>
+  <ng-template contextMenuItem passive="true">
+    Input something: <input type="text">
+  </ng-template>
+</context-menu>

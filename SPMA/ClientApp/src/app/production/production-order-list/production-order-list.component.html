@@ -1,0 +1,169 @@
+<!--<p>production-order-list works!</p>-->
+<div class="container-fluid p-0">
+  <div class="row">
+    <div class="col">
+      <button mat-raised-button color="primary" style="margin-left: 10px"
+              (click)="backSelectionScreen()">
+        <h4 class="m-2"><< Wróć</h4>
+      </button>
+    </div>
+  </div>
+  <hr class="mb-0">
+  <div class="row">
+    <div class="col orders-list-container">
+
+      <!--<table class="table">
+        <thead>
+          <tr>
+            <th scope="col">pozycja</th>
+            <th scope="col">stan</th>
+            <th scope="col">ilosc</th>
+            <th scope="col">numer</th>
+            <th scope="col">status rw</th>
+            <th scope="col">nazwa</th>
+            <th scope="col">client</th>
+            <th scope="col">data</th>
+            <th scope="col">data</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of dataSource.data">
+            <th scope="row">{{order.position}}</th>
+            <td>{{order.state}}</td>
+            <td>{{order.plannedQty}}</td>
+            <td>{{order.number}}</td>
+            <td>{{order.rwCompletion | number : '1.1-1'}}</td>
+            <td>{{order.name}}</td>
+            <td>{{order.clientName}}</td>
+            <td>{{order.orderDate | date:'mediumDate':'pl'}}</td>
+            <td>{{order.requiredDate | date:'mediumDate':'pl'}}</td>
+        </tbody>
+      </table>-->
+
+
+
+      <table mat-table [dataSource]="dataSource" multiTemplateDataRows
+             matSort matSortActive="Number" matSortDirection="asc" matSortDisableClear class="mt-2">
+
+        <ng-container matColumnDef="Position">
+          <th mat-header-cell *matHeaderCellDef style="width:4%;">#</th>
+          <td mat-cell *matCellDef="let order" style="width:4%;">{{order.position}}</td>
+        </ng-container>
+
+
+        <ng-container matColumnDef="State">
+          <th mat-header-cell *matHeaderCellDef style="width:3%;" class="text-center">Status</th>
+          <td mat-cell *matCellDef="let order" style="width:3%;" class="text-center">{{order.state}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="PlanFinQty">
+          <th mat-header-cell *matHeaderCellDef style="width:5%;" class="text-center">Ilość</th>
+          <td mat-cell *matCellDef="let order" style="width:5%;" class="text-center">{{order.finishedQty}} / {{order.plannedQty}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="Number">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header style="width:10%;" class="sortable">Numer</th>
+          <td mat-cell *matCellDef="let order" style="width:10%;" class="pl-2">{{order.number}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="StatusRW">
+          <th mat-header-cell *matHeaderCellDef style="width:5%;" class="text-center">Stan RW</th>
+          <td mat-cell *matCellDef="let order" style="width:5%;" class="text-center">
+            {{order.rwCompletion | number : '1.1-1'}} %
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="Name">
+          <th class="sortable" mat-header-cell *matHeaderCellDef mat-sort-header style="width:35%;">Nazwa</th>
+          <td mat-cell *matCellDef="let order" style="width:35%;">{{order.name}}</td>
+        </ng-container>
+        <ng-container matColumnDef="ClientName">
+          <th class="sortable" mat-header-cell *matHeaderCellDef mat-sort-header style="width:20%;">Klient</th>
+          <td mat-cell *matCellDef="let order" style="width:20%;">{{order.clientName}}</td>
+        </ng-container>
+        <ng-container matColumnDef="OrderDate">
+          <th class="sortable" mat-header-cell mat-sort-header *matHeaderCellDef  style="width:10%;">Data <br>wpłynięcia</th>
+          <td mat-cell *matCellDef="let order" style="width:10%;">{{order.orderDate | date:'mediumDate':'pl'}}</td>
+        </ng-container>
+        <ng-container matColumnDef="RequiredDate">
+          <th class="sortable" mat-header-cell mat-sort-header *matHeaderCellDef  style="width:8%;">Termin wykonania</th>
+          <td mat-cell *matCellDef="let order" style="width:8%;">{{order.requiredDate | date:'mediumDate':'pl'}}</td>
+        </ng-container>
+
+
+        <ng-container matColumnDef="Buttons">
+          <th mat-header-cell *matHeaderCellDef style="width:10%;"></th>
+          <td class="withButton" mat-cell *matCellDef="let order" style="width:10%;">
+            <button mat-raised-button (click)="toSuborderList(order)"
+                    [disabled]="order !== selectedOrder"
+                    color="primary">
+              <h5 class="m-2">Wybierz >></h5>
+            </button>
+          </td>
+        </ng-container>
+
+
+        <!--#####Secord header row inouts components#####
+        Header row first group disabled-->
+        <ng-container matColumnDef="disabledInput">
+          <th mat-header-cell *matHeaderCellDef></th>
+        </ng-container>
+
+        <!--Header row second group Order Number-->
+        <ng-container matColumnDef="NumberInput">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-form-field style="width: 120px">
+              <input matInput id="Number" placeholder="Numer" #searchNumberInput [(ngModel)]="numberSearchInputValue">
+              <button mat-button *ngIf="numberSearchInputValue" matSuffix mat-icon-button aria-label="Clear" (click)="onClearNumberSearchInputValue()">
+                <mat-icon class="close-icon">close</mat-icon>
+              </button>
+            </mat-form-field>
+          </th>
+        </ng-container>
+
+        <!--  Header row second group Order Name-->
+        <ng-container matColumnDef="NameInput">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-form-field style="width: 400px;">
+              <input matInput id="Name" placeholder="Nazwa" #searchNameInput [(ngModel)]="nameSearchInputValue">
+              <button mat-button *ngIf="nameSearchInputValue" matSuffix mat-icon-button aria-label="Clear" (click)="onClearNameSearchInputValue()">
+                <mat-icon class="close-icon">close</mat-icon>
+              </button>
+            </mat-form-field>
+          </th>
+        </ng-container>
+
+        <!--  Header row second group Order Client Name-->
+        <ng-container matColumnDef="ClientInput">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-form-field style="width: 220px;">
+              <input matInput id="ClientName" placeholder="Klient" #searchClientInput [(ngModel)]="clientNameSearchInputValue">
+              <button mat-button *ngIf="clientNameSearchInputValue" matSuffix mat-icon-button aria-label="Clear" (click)="onClearClientNameSearchInputValue()">
+                <mat-icon class="close-icon">close</mat-icon>
+              </button>
+            </mat-form-field>
+          </th>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-header-row
+            *matHeaderRowDef="[
+            'NumberInput','NameInput',
+            'ClientInput','disabledInput','disabledInput','disabledInput'];
+            sticky: true"></tr>
+        <tr mat-row *matRowDef="let order; columns: displayedColumns;"
+            class="example-element-row"
+            [ngClass]="{'order-selected': order == selectedOrder}"
+            (click)="onOrderClick(order)"></tr>
+        <!--[class.example-expanded-row]="expandedElement === order"
+            (click)="expandedElement = expandedElement === order ? null : order"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="example-detail-row"></tr>-->
+
+      </table>
+      <!--<mat-paginator class="mat-paginator-sticky" [length]="this.dataSource.dataLength"
+                     [pageSize]="100" [pageSizeOptions]="[25,50,100]" showFirstLastButtons>
+      </mat-paginator>-->
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,160 @@
+<div classs="container-fluid px-2">
+  <div class="row mb-3 px-2">
+    <!--<div class="col-auto">
+      <button mat-raised-button color="primary"
+              (click)="backToOrderList()">
+        <h4 class="m-2"><< Wróć</h4>
+      </button>
+    </div>-->
+    <div class="col header d-flex align-items-center">
+      <button mat-raised-button color="primary"
+              (click)="backToOrderList()">
+        <h4 class="m-2"><< Wróć</h4>
+      </button>
+      <nav aria-label="breadcrumb" class="customNavbar">
+        <ol class="breadcrumb m-0">
+          <li class="breadcrumb-item active" aria-current="page"><h4>Wybrane zlecenie: {{mainOrder.number}}</h4></li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row px-2">
+    <div class="col">
+      <!--<p class=" h4">Wybrane zlecenie: {{mainOrder.number}}</p>-->
+
+      <!--<ul class="list-group" id="subOrderList" style="overflow-y:auto; height:775px;">
+    <li class="list-group-item"
+        *ngFor="let item of subordersList; let i = index"
+        [ngClass]="{'sub-order': item == selectedSubOrder}"
+        style="padding: 5px;"
+        (click)="onSubOrderClick(item)">
+      <a class="btn w-100"
+         appAttrCheck  (attrValueChange)="onSubOrderExpand()"
+         routerLink="/production/bandsaw">
+        <div class="row" [ngClass]="{'font-weight-bold': item == selectedSubOrder}" [attr.id]="item.orderBookId" #selectedSubOrderId>
+          <div class="col-auto" style="width: 50px; border-right: 4px; ">{{item.position}}</div>
+          <div class="col-2 text-left">{{item.number}}</div>
+          <div class="col-2 text-left">{{item.componentNumber}}</div>
+          <div class="col-5 text-left">{{item.book.officeNumber}} - {{item.book.name}}</div>
+          <div class="col-1 text-left">{{item.finishedQty}} / {{item.plannedQty}}</div>
+          <div class="col-1 text-left">{{item.addedDate | date:'mediumDate':'pl'}}</div>
+          <div class="col-1 text-left">
+          </div>
+        </div>
+      </a>
+    </li>
+  </ul>-->
+
+      <div class="row">
+        <div class="col suborders-list-container">
+          <table mat-table [dataSource]="filteredOrderBooks" class="table" multiTemplateDataRows
+                 matSort matSortActive="Number" matSortDirection="asc" matSortDisableClear>
+
+            <ng-container matColumnDef="position">
+              <th mat-header-cell *matHeaderCellDef><strong>Lp.</strong></th>
+              <td mat-cell *matCellDef="let element"> {{element.position+1}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="state">
+              <th mat-header-cell *matHeaderCellDef><strong>Postęp</strong></th>
+              <td mat-cell *matCellDef="let element"><p class="m-0" *ngIf="completionStatuses[element.position]>=0"> {{completionStatuses[element.position]}}%</p> </td>
+            </ng-container>
+
+            <ng-container matColumnDef="number">
+              <th mat-header-cell mat-sort-header *matHeaderCellDef> <strong>Numer podzlecenia</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.number}} </td>
+            </ng-container>
+
+
+            <ng-container matColumnDef="componentNumber">
+              <th mat-header-cell mat-sort-header *matHeaderCellDef> <strong>Numer komponentu</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.componentNumber}} </td>
+            </ng-container>
+
+
+            <ng-container matColumnDef="bookOfficeNumber">
+              <th mat-header-cell mat-sort-header *matHeaderCellDef> <strong>Numer i opis książki</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.book.officeNumber}} - {{element.book.name}} </td>
+            </ng-container>
+
+
+            <ng-container matColumnDef="Quantity">
+              <th mat-header-cell *matHeaderCellDef> <strong>Ilość</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.finishedQty}} / {{element.plannedQty}} </td>
+            </ng-container>
+
+
+            <ng-container matColumnDef="addedDate">
+              <th mat-header-cell mat-sort-header *matHeaderCellDef> <strong>Data dodania</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.addedDate | date:'mediumDate':'pl'}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="button">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td class="withButton" mat-cell *matCellDef="let element">
+                <button mat-raised-button (click)="toSuborderItemsList()"
+                        [disabled]="element !== selectedSubOrder"
+                        color="primary">
+                  <h5 class="m-2">Wybierz >></h5>
+                </button>
+              </td>
+            </ng-container>
+
+            <!-- Header row first group disabled -->
+            <ng-container matColumnDef="disabledInput">
+              <th mat-header-cell *matHeaderCellDef></th>
+            </ng-container>
+
+            <!-- Header row second group Order Number -->
+            <ng-container matColumnDef="NumberInput">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-form-field style="width: 85%">
+                  <input matInput placeholder="Numer" #subordernumberfilter class="search-input" [formControl]="numberInput"
+                         (input)="filterSuborders()">
+                  <button mat-button *ngIf="subordernumberfilter.value" matSuffix mat-icon-button aria-label="Clear" (click)="onNumberInputClear()">
+                    <mat-icon class="close-icon">close</mat-icon>
+                  </button>
+                </mat-form-field>
+              </th>
+            </ng-container>
+
+            <!-- Header row second group Order Name -->
+            <ng-container matColumnDef="NameInput">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-form-field style="width: 85%;">
+                  <input matInput placeholder="Nazwa" #descriptionfilter class="search-input" [formControl]="descriptionInput"
+                         (input)="filterSuborders()">
+                  <button mat-button *ngIf="descriptionfilter.value" matSuffix mat-icon-button aria-label="Clear" (click)="onDescriptionInputClear()">
+                    <mat-icon class="close-icon">close</mat-icon>
+                  </button>
+                </mat-form-field>
+              </th>
+            </ng-container>
+
+            <!-- Header row second group Order Client Name-->
+            <ng-container matColumnDef="ComponentNumberInput">
+              <th mat-header-cell *matHeaderCellDef>
+                <mat-form-field style="width: 85%;">
+                  <input matInput placeholder="Numer części" #componentnumberfilter class="search-input" [formControl]="componentNumberInput"
+                         (input)="filterSuborders()">
+                  <button mat-button *ngIf="componentnumberfilter.value" matSuffix mat-icon-button aria-label="Clear" (click)="onComponentNumberInputClear()">
+                    <mat-icon class="close-icon">close</mat-icon>
+                  </button>
+                </mat-form-field>
+              </th>
+            </ng-container>
+
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky:true"></tr>
+            <tr mat-header-row *matHeaderRowDef="['NumberInput','ComponentNumberInput','NameInput','disabledInput','disabledInput','disabledInput']; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                [ngClass]="{'sub-order': row == selectedSubOrder}"
+                (click)="onSubOrderClick(row)"></tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

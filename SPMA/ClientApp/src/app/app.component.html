@@ -1,0 +1,12 @@
+<app-header [ngStyle]="{'display': navBarOpt.display}"></app-header>
+
+<div class="container-fluid app-container" style="overflow-y: auto">
+  <!--<div class="row">-->
+    <app-sidenav  [ngStyle]="{'display': navBarOpt.display}"></app-sidenav>
+    <main role="main" class="col-md-9 col-lg-12" style="padding-left:200px; padding-bottom:10px; height:99%;" [ngStyle]="{'padding-left': navBarOpt.paddingLeft, 'padding-top': navBarOpt.paddingTop}">
+     
+      <router-outlet (activate)="onActivate($event)"></router-outlet>
+      <footer class="footer"></footer>
+    </main>
+  <!--</div>-->
+</div>

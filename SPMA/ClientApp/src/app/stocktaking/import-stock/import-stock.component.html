@@ -1,0 +1,36 @@
+<div style="width:1675px;">
+  <div *ngIf="!importingData" class="browse-file-container">
+    <div class="row mb-2">
+      <div class="col px-2">
+        <h5>Wybierz spis towarów z Optimy</h5>
+        <hr />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-7 d-flex justify-content-start">
+        <mat-form-field class="w-100 pl-1">
+          <input matInput type="text" readonly [formControl]="fileInput" />
+          <mat-placeholder class="placeholder">Spis towarów</mat-placeholder>
+          <input #fileToUpload type="file" style="display:none;" (change)="onFileSelected($event)">
+          <mat-error *ngIf="!fileInput.valid ">Lista części jest wymagana</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="col-auto d-flex justify-content-end">
+        <button mat-raised-button color="primary" class="pr-3 my-2" (click)="fileToUpload.click()">Przeglądaj<mat-icon class="ml-3">list</mat-icon></button>
+      </div>
+      <div class="col-auto d-flex justify-content-start">
+        <button [disabled]="!fileInput.valid" mat-raised-button color="warn" class="pr-3 my-2" (click)="onUpload()">Importuj<mat-icon class="ml-3">import_contacts</mat-icon></button>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col px-2">
+        <mat-progress-bar mode="determinate" [value]="progress"></mat-progress-bar>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="importingData" class="browse-file-container">
+    <h2 class="text-center">Czekaj, importowanie danych ...</h2>
+    <mat-spinner class="m-auto"></mat-spinner>
+  </div>
+</div>

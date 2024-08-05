@@ -1,0 +1,8 @@
+<h1 mat-dialog-title>Usuń</h1>
+<div mat-dialog-content>
+  <p>{{data.message}}</p>
+</div>
+<div mat-dialog-actions class="float-right">
+  <button mat-raised-button color="primary" class="mr-3" (click)="onNoClick()">Nie</button>
+  <button [mat-dialog-close]="true" mat-raised-button color="warn">Tak</button>
+</div>

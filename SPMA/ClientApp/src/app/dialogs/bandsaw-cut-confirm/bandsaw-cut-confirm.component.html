@@ -1,0 +1,76 @@
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <p class="h3 mb-2">Potwierdzenie ucięcia</p>
+      <mat-divider class="mb-4"></mat-divider>
+    </div>
+  </div>
+
+  <div class="row d-flex justify-content-center">
+    <!--<div class="col-3 bgcolor">
+      <mat-form-field>
+        <input matInput
+               readonly
+               [formControl]="plannedQtyInput"
+               placeholder="l.sztuk" />
+      </mat-form-field>
+    </div>
+    <div class="col-1 d-flex justify-content-center"><p class="h1 px-2">*</p></div>
+    <div class="col-3 bgcolor">
+      <mat-form-field>
+        <input matInput
+               readonly
+               [formControl]="bookQtyInput"
+               placeholder="l.kompletów" />
+      </mat-form-field>
+    </div>
+    <div class="col-1 d-flex justify-content-center"><p class="h1">=</p></div>-->
+    <div class="col-10">
+      <mat-form-field>
+        <input matInput
+               readonly
+               [formControl]="totalQtyInput"
+               placeholder="łączna ilość sztuk" />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="row d-flex justify-content-center mt-3">
+    <!--<div class="col-3 bgcolor">
+      <mat-form-field>
+        <input matInput
+               readonly
+               [formControl]="doneAlreadyQtyInput"
+               placeholder="już wykonane" />
+      </mat-form-field>
+    </div>
+    <div class="col-1"><p style="display:inline-block" class="h1 px-2">/</p></div>
+    <div class="col-3 bgcolor">
+      <mat-form-field>
+        <input matInput
+               readonly
+               [formControl]="totalQtyInput"
+               placeholder="razem w książce" />
+      </mat-form-field>
+    </div>-->
+    <div class="col-10">
+      <mat-form-field>
+        <input matInput
+               readonly
+               [formControl]="totalMaterialQty"
+               placeholder="łączna ilość materiału" />
+        <span matSuffix class="pl-1">{{data.wareUnit}}</span>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="row d-flex justify-content-center pt-4">
+    <div class="col-4">
+    <button class="button-look" style="width:inherit; height:50px" mat-raised-button color="success" (click)="onConfirm()" [disabled]="confirmed">Potwierdź</button>
+    </div>
+    <div class="col-4">
+    <button class="button-look" style="width:inherit; height:50px" mat-raised-button color="warn" (click)="onClose()">Zamknij</button>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,47 @@
+
+.sub-order {
+  background-color: whitesmoke;
+  font-weight: bold;
+}
+
+td {
+  vertical-align : middle;
+  font-size: 20px;
+  text-align: left;
+}
+
+td.withButton {
+  text-align : center;
+}
+
+th{
+    font-size:22px;
+    color:black;
+}
+
+tr[mat-row]:hover{
+    background-color: whitesmoke;
+}
+
+td:nth-child(4) {
+  text-align: center;
+}
+
+th:nth-child(4) {
+  text-align: center;
+}
+
+.suborders-list-container {
+  position: relative;
+  overflow-y: auto;
+  height: 69vh;
+}
+
+.header{
+    border-radius: 3px;
+    background-color: #e9ecef;
+}
+
+.customNavbar{
+    display: inline-block;
+}

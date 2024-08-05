@@ -1,0 +1,111 @@
+<div classs="container-fluid px-2">
+  <div class="row mb-3 px-2">
+    <div class="col">
+      <button mat-raised-button color="primary" class="button-header"
+              (click)="backToSelectionScreen()">
+        <h4 class="m-2"><< Wróć</h4>
+      </button>
+    </div>
+    <div class="col-auto">
+      <button mat-raised-button color="accent" class="button-header"
+              (click)="onAddNewSurplusOrder()">
+        <h4 class="m-2">Dodaj Nowe</h4><mat-icon>add</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="row px-2">
+    <div class="col">
+
+      <div class="row">
+        <div class="col suborders-list-container">
+          <table mat-table [dataSource]="dataSource" multiTemplateDataRows class="table">
+
+            <ng-container matColumnDef="position">
+              <th mat-header-cell *matHeaderCellDef><strong>Lp.</strong></th>
+              <td mat-cell *matCellDef="let i = index"> {{i}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="quantity">
+              <th mat-header-cell *matHeaderCellDef> <strong>Ilość szt.</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.componentQty}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="wareQtySum">
+              <th mat-header-cell *matHeaderCellDef> <strong>Ilość materiału</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.wareQtySum}} {{element.ware.unit}}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="componentName">
+              <th mat-header-cell *matHeaderCellDef> <strong>Nazwa</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.component.name}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="componentNumber">
+              <th mat-header-cell *matHeaderCellDef> <strong>Numer</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.component.number}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="wareCode">
+              <th mat-header-cell *matHeaderCellDef> <strong>Materiał</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.ware.code}} </td>
+            </ng-container>
+
+
+            <ng-container matColumnDef="addedBy">
+              <th mat-header-cell *matHeaderCellDef> <strong>Dodane przez</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.addedBy}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="addedDate">
+              <th mat-header-cell *matHeaderCellDef> <strong>Data dodania</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.addedDate | date:'mediumDate':'pl'}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="comment">
+              <th mat-header-cell *matHeaderCellDef> <strong>Komentarz</strong> </th>
+              <td mat-cell *matCellDef="let element"> {{element.comment}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="expandedDetail">
+              <td mat-cell *matCellDef="let element" [attr.colspan]="displayedColumns.length">
+                <div class="example-element-detail"
+                     [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'" id="{{element.SurplusItemId}}">
+                  <div *ngIf="element.parentRWItem == null" class="row py-3" ng-show="element == expandedElement">
+                    <div class="col">
+                      <div class="float-left">
+                        <button mat-raised-button color="success" [disabled]="expandedElement?.reservedQty!==0" (click)="onEditOrder()" class="mr-3 rowButton"><h5>Edytuj</h5></button>
+                        <button mat-raised-button color="success" (click)="onNewOrderFromExisting()" class="mr-3 rowButton"><h5>Kopiuj</h5></button>
+                        <!--<button mat-raised-button color="primary" (click)="onArchiveOrder()" class="mr-3 rowButton"><h5>Archiwizuj</h5></button>-->
+                        <button mat-raised-button color="warn" [disabled]="expandedElement?.reservedQty!==0" (click)="onDeleteOrder()" class="mr-3 rowButton"><h5>Usuń</h5></button>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="element.parentRWItem != null" class="row py-3" ng-show="element == expandedElement">
+                    <div class="col-auto">
+                      <p class="m-0"><strong>Podzlecenie: </strong>{{element.parentRWItem.inProduction.orderBook.number}}</p>
+                    </div>
+                    <div class="col-auto">
+                      <p class="m-0"><strong>Status wykonania: </strong>{{printState(element)}}</p>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky:true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                [ngClass]="{'surplus-order': row == expandedElement}"
+                [ngStyle]="{'background-color': setTrBgColor(row)}"
+                (click)="onTableRowClick(row)"
+                class="example-element-row"
+                [class.example-expanded-row]="expandedElement === row">
+            </tr>
+            <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="example-detail-row"></tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

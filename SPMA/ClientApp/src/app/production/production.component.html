@@ -1,0 +1,22 @@
+<div class="container-fluid mt-2">
+      <p class="m-0">
+        <mat-toolbar>
+          <span style="font-size: 25px;font-weight:bold;">{{title[0]}} - {{title[1]}}</span>
+          <span class="example-spacer"></span>
+          <!--Po dodaniu funkcjonalnosci logowania nalezy zamienic wartosc disabled przycisku na "LogOutButtonDisable"-->
+          <button mat-raised-button
+                  [disabled]="true"
+                  color="primary"
+                  (click)="onLogOut()"
+                  style="height:45px">
+            <span><h5>Wyloguj</h5></span>
+          </button>
+        </mat-toolbar>
+      </p>
+  <hr>
+  <div class="row">
+    <div class="col">
+      <router-outlet (activate)='onActivate($event)'></router-outlet>
+    </div>
+  </div>
+</div>

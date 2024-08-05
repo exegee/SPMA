@@ -1,0 +1,502 @@
+  <!--Loading spinner-->
+<div *ngIf="isLoadingSubOrder" class="loading-container">
+  <mat-card>
+    <mat-card-content>
+      <h3 style="margin: 10px 10px 20px 10px; text-align: center;">Przygotowywanie podzlecenia do edycji</h3>
+      <section style="display: flex; align-content: center; align-items: center; flex-direction: column; height: auto;">
+        <div class="row" style="align-content:flex-start;  width:50%; height:25px;">
+          <div class="col-2">
+            <div *ngIf="loadingSubOrderSteps[0]; else step_loading" style="float: right">
+              <img rel="prefetch" position src="../../assets/Images/check_green.png" height="25" width="25" />
+            </div>
+          </div>
+          <div class="col pl-0">
+            <div class="pl-0">Pobieranie podstawowych informacji o podzleceniu.</div>
+          </div>
+        </div>
+        <div class="row" style="width: 50%; height:25px;">
+          <div class="col-2">
+            <div *ngIf="loadingSubOrderSteps[1]; else step_loading" style="float: right">
+              <img rel="prefetch" src="../../assets/Images/check_green.png" height="25" width="25" />
+            </div>
+          </div>
+          <div class="col pl-0">
+            <div>Pobieranie informacji o książce.</div>
+          </div>
+        </div>
+
+        <div class="row" style="width: 50%; height:25px;">
+          <div class="col-2">
+            <div *ngIf="loadingSubOrderSteps[2]; else step_loading" style="float: right">
+              <img rel="prefetch" src="../../assets/Images/check_green.png" height="25" width="25" />
+            </div>
+          </div>
+          <div class="col pl-0 text-truncate text-nowrap">
+            <div class="pl-0 ">{{subOrderItemNumber}}</div>
+          </div>
+        </div>
+
+        <div class="row" style="width: 50%; height:25px;">
+          <div class="col-2">
+            <div *ngIf="loadingSubOrderSteps[3]; else step_loading" style="float: right">
+              <img rel="prefetch" src="../../assets/Images/check_green.png" height="25" width="25" />
+            </div>
+          </div>
+          <div class="col pl-0">
+            <div class="pl-0">Formatowanie.</div>
+          </div>
+        </div>
+        <mat-progress-bar *ngIf="!loadingSubOrderSteps[3]; else progressBarInderminate" class="mat-progress-bar-custom mt-3" color="primary" mode="determinate" [value]="progressBarValue">
+        </mat-progress-bar>
+      </section>
+    </mat-card-content>
+  </mat-card>
+</div>
+<ng-template #progressBarInderminate><mat-progress-bar class="mat-progress-bar-custom mt-3" color="primary" mode="indeterminate"></mat-progress-bar></ng-template>
+<ng-template #step_loading><span class="spinner-border text-success spinner-border-sm" style="float: right; margin-right:4px;"></span></ng-template>
+<ng-template #item_updating><span class="spinner-border text-success spinner-border-sm" style="float: right; margin-right:9px;"></span></ng-template>
+<!--Edycja-->
+<div class="main-container" *ngIf="!isLoadingSubOrder">
+  <div class="edit-book-container">
+    <mat-tab-group (selectedTabChange)="onTabSelectionChange($event)" class="h-100">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="example-tab-icon">view_list</mat-icon>
+          Lista części
+        </ng-template>
+        <div class="row h-100">
+          <div class="col-auto h-100" style="width: 500px;">
+            <div class="h-100">
+              <mat-form-field style="width:210px; margin: 5px 20px 0 0; padding:0; min-height:5px; height:40px">
+                <input matInput placeholder="Numer złożenia (książki)" type="text" [formControl]="bookComponentNumberInput"
+                       readonly />
+                <mat-error *ngIf="!bookComponentNumberInput.valid ">Wprowadź numer książki</mat-error>
+              </mat-form-field>
+              <mat-form-field style="width:95px; margin: 5px 20px 0 0; padding:0; min-height:5px; height:40px">
+                <input matInput placeholder="Kod" type="text" [formControl]="bookOfficeNumberInput"
+                       readonly />
+                <mat-error *ngIf="!bookOfficeNumberInput.valid ">Kod!</mat-error>
+              </mat-form-field>
+              <mat-form-field style="width:60px; margin:0; padding:0;min-height:5px; height:40px">
+                <input matInput placeholder="Ilość" min="0" type="number" [formControl]="bookQuantityInput" (change)="onBookQtyChange()" />
+                <span matSuffix>szt.</span>
+                <mat-error *ngIf="!bookQuantityInput.valid ">Ilość!</mat-error>
+              </mat-form-field>
+              <mat-form-field style="width:260px; margin: 5px 10px 0 0; padding:0; min-height:5px; height:50px">
+                <input matInput placeholder="Nazwa" type="text" [formControl]="bookNameInput"
+                       readonly class="text-truncate" />
+                <mat-error *ngIf="!bookNameInput.valid ">Wprowadź nazwę</mat-error>
+              </mat-form-field>
+              <mat-form-field style="width:120px; margin: 5px 0 0 15px; padding:0; min-height:5px; height:50px">
+                <input class="text-truncate" matInput placeholder="Numer" type="text" [formControl]="subOrderInput" readonly />
+                <mat-error *ngIf="!subOrderInput.valid ">Wprowadź numer</mat-error>
+              </mat-form-field>
+              <div class="row">
+                <div class="col-7"></div>
+                <div class="col-2" style="padding-left:21px;">
+                  <button mat-raised-button color="primary" style="min-width:15px; line-height:25px; width:15px; display:inline-flex; justify-content:center;"
+                          (click)="toogleAllStandardComponentsToProduction()">
+                    <img class="cog-img" src="../../../assets/Svgs/cog.svg" height="15" width="15" />
+                  </button>
+                </div>
+                <div class="col-3"></div>
+              </div>
+
+              <mat-list dense style="margin-top: 5px; height: 64vh;" appScrollToActive >
+                <div class="scrollbar" id="style-11">
+                  <div *ngFor="let item of subOrder; let i = index">
+                    <div *ngIf="item.inProduction.sourceType != 5">
+                      <mat-list-item style="height: 25px;"
+                                     [ngClass]="{'font-weight-bold': item.inProduction.component.componentType === 1,
+                                     'list-group-item-primary': selectedSubOrderItem.orderTree === item.orderTree
+                                     && selectedSubOrderItem.inProductionId === item.inProductionId}"
+                                     (click)="onSelectedSubOrderItem(item)">
+                        <div *ngIf="!item.isUpdating; else item_updating" style="width: 15px; border: 1px solid; height:15px;margin-right:10px; border-radius:15px; background-color:white"
+                             [ngStyle]="{'background-color': item.updatedLocally ? 'rgb(255, 224, 83)' : '#fff' && item.updatedInDatabase ? '#00ff21' : '#fff'}">
+                        </div>
+                        <div class="col-5 text-truncate" [matTooltip]="item.inProduction.component.number"
+                             [ngStyle]="{'padding-left': item.levelTree * 0.5 + 'rem'}">{{item.inProduction.component.number}}</div>
+                        <div class="col-1">
+                          <img *ngIf="item.isAdditionallyPurchasable" src="../../../assets/Images/shop_cart.png" height="15" width="15" />
+                        </div>
+                        <div class="col-1">
+                          <img *ngIf="item.ware != null" src="../../../assets/Images/box.png" height="15" width="15" />
+                        </div>
+                        <div class="col-1" appToProductionToggle [(check)]="item.isInProduction" (click)="onToProductionToggleChange(item, true)">
+                        </div>
+                        <div class="mr-auto col-1">
+                          <img *ngIf="item.inProduction.sourceType >= 2 && item.isInProduction" class="mr-3" src="../../../assets/Svgs/fire.svg" height="15" width="15"
+                               [ngClass]="{'plasma-img': item.inProduction.sourceType === 2 && item.isInProduction, 'laser-img': item.inProduction.sourceType && item.isInProduction > 2}" />
+                        </div>
+                        <div class="float-right badge badge-primary">{{item.inProduction.plannedQty}} ({{item.totalToIssue}})</div>
+                        <div class="ml-2 float-right badge"
+                             [ngClass]="{'badge-danger': item.inProduction.plannedQty != item.inProduction.bookQty,
+                                           'badge-success': item.inProduction.plannedQty === item.inProduction.bookQty}">{{item.inProduction.bookQty}}</div>
+                      </mat-list-item>
+                      <mat-divider></mat-divider>
+                    </div>
+                  </div>
+                </div>
+              </mat-list>
+            </div>
+          </div>
+          <div class="col-auto" style="width:610px;">
+            <div style="height: 412px; margin-left: 8px;">
+              <mat-form-field style="width:405px; margin: 5px 15px 0 0;">
+                <input matInput placeholder="Nazwa" [(ngModel)]="selectedSubOrderItem.inProduction.component.name" />
+              </mat-form-field>
+              <mat-form-field style="width:4rem; margin: 0 15px 0 0;">
+                <input matInput placeholder="Ilość" min="0" type="number" (input)="onComponentQtyChange(selectedSubOrderItem)" [formControl]="componentQuantityInput" />
+                <span matSuffix>szt.</span>
+              </mat-form-field>
+
+
+              <mat-form-field style="width:4rem;">
+                <input readonly matInput placeholder="Suma" value="{{selectedSubOrderItem?.totalToIssue}}" />
+                <span matSuffix>szt.</span>
+              </mat-form-field>
+
+              <div class="row">
+                <div class="col-5">
+                  <div class="row align-items-center ml-1 mt-2">
+                    <label class="m-0 mr-3 font-weight-bold">Zleć na produkcję:</label>
+                    <mat-slide-toggle [checked]="selectedSubOrderItem?.isInProduction"
+                                      (change)="onToProductionToggleChange()"
+                                      color="primary">
+                      {{selectedSubOrderItem?.isInProduction ? 'Tak' : 'Nie'}}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="row align-items-center ml-1 mt-2">
+                    <label class="m-0 mr-3 font-weight-bold">Część kupna:</label>
+                    <mat-slide-toggle [checked]="selectedSubOrderItem?.isAdditionallyPurchasable == 1"
+                                      (change)="onCopyToPurchaseListToggleChange($event)"
+                                      color="primary">
+                      {{selectedSubOrderItem?.isAdditionallyPurchasable == 1 ? 'Tak' : 'Nie'}}
+                    </mat-slide-toggle>
+                  </div>
+                </div>
+                <div class="col-7" [@divState]="plasmaToggleYesNoState" style="height:70px;">
+                  <div class="row align-items-center ml-3 mt-2">
+                    <label style="margin: 0 10px 0 0; font-weight: bold">Palone:</label>
+                    <mat-slide-toggle [formControl]="plasmaToggleYesNo"
+                                      (change)="onLastSourceTypeChange()"
+                                      color="primary">
+                      {{plasmaToggleYesNo.value ? 'Tak' : 'Nie'}}
+                    </mat-slide-toggle>
+                  </div>
+
+                  <div class="row align-items-center ml-3" *ngIf="plasmaToggleYesNo.value">
+                    <mat-icon style="margin: 0 0 0 15px;">subdirectory_arrow_right</mat-icon>
+                    <label style="margin: 0 10px 0 10px;">Gdzie:</label>
+                    <mat-slide-toggle [formControl]="plasmaToggleOrgin"
+                                      (change)="onLastSourceTypeChange(event)"
+                                      color="primary">
+                      {{plasmaToggleOrgin.value ? 'Inne' : 'S.S.'}}
+                    </mat-slide-toggle>
+                  </div>
+                  <div class="row align-items-center ml-3" *ngIf="plasmaToggleOrgin.value && plasmaToggleYesNo.value">
+                    <mat-icon style="margin: 0 0 0 65px;">subdirectory_arrow_right</mat-icon>
+                    <label style="margin: 0 10px 0 15px;">Powierzony materiał:</label>
+                    <mat-slide-toggle [formControl]="plasmaToggleEntrustedMaterial"
+                                      (change)="onLastSourceTypeChange()"
+                                      color="primary">
+                      {{plasmaToggleEntrustedMaterial.value ? 'Tak' : 'Nie'}}
+                    </mat-slide-toggle>
+                  </div>
+
+                </div>
+              </div>
+
+              <label class="mt-4 ml-1 font-weight-bold">Produkcja nadmiarowa:</label>
+              <mat-list dense>
+                <div class="scrollbar-wares" id="style-11">
+                  <div class="row">
+                    <div class="col-2"><h2 mat-subheader class="font-weight-bold">Zlecenie</h2></div>
+                    <div class="col-4"><div mat-subheader class="font-weight-bold">Podzlecenie</div></div>
+                    <div class="col-2"><h2 mat-subheader class="font-weight-bold" style="margin-left:10px;">Ilość</h2></div>
+                    <div class="col-4"></div>
+                  </div>
+                  <div *ngIf="componentsInProduction.length > 0; then showProductionContent else showNoContent ">
+
+                  </div>
+                  <ng-template #showProductionContent>
+                    <div *ngFor="let component of componentsInProduction">
+                      <mat-list-item style="margin-left: -16px">
+                        <div class="col-2">{{component.orderBook.order.number}}</div>
+                        <div class="col-4" style="margin-left:10px;">{{component.orderBook.number}}</div>
+                        <div class="col-2 font-weight-bold" style="margin-left:30px;">{{component.plannedQty}} szt.</div>
+                        <div class="col-4">
+                          <button mat-raised-button style="min-height:25px; max-height: 25px; line-height:25px;"
+                                  (click)="onReserveInProduction(component)"
+                                  [color]="reserveInProductionButtonColor">
+                            <div *ngIf="selectedComponent.inProductionReservation == null; else isReserved">Zarezerwuj</div>
+                            <ng-template #isReserved>Usuń rezerwacje</ng-template>
+                          </button>
+                        </div>
+                      </mat-list-item>
+                      <mat-divider></mat-divider>
+                    </div>
+                  </ng-template>
+                  <ng-template #showNoContent>
+                    <mat-list-item style="margin-left: -16px">
+                      <div class="col-12 font-weight-bold">Detal nie znajduje się w produkcji nadmiarowej</div>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                  </ng-template>
+                </div>
+              </mat-list>
+
+            </div>
+            <div [@divState]="wareDivState">
+              <div *ngIf="wareDivEnabled">
+                <div style="height: 220px; margin-left: 8px;">
+                  <form>
+                    <mat-form-field style="width: 250px;">
+                      <mat-label>Magazyn</mat-label>
+                      <mat-select [(value)]="selectedMag">
+                        <mat-option *ngFor="let mag of optimaMags" [value]="mag">{{mag.mag_Symbol}}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field style="width:150px; margin-left: 25px;">
+                      <input readonly matInput placeholder="Stan magazynowy" value="{{selectedOptimaItem.twI_Ilosc}}" />
+                      <span matSuffix>{{selectedOptimaItem.twr_JM}}</span>
+                    </mat-form-field>
+                    <mat-form-field class="mr-3 w-100">
+                      <input autofocus #acValue matInput [value]="searchOptimaWarehouseInputValue" placeholder="Towar w magazynie Optimy" [matAutocomplete]="auto" [formControl]="searchOptimaWarehouse" />
+                    </mat-form-field>
+                    <mat-autocomplete panelWidth="572px" (optionSelected)="onSelectedOptimaItem($event)" #auto="matAutocomplete" [displayWith]="searchOptimaWarehouseDisplay" style="max-height:400px;">
+                      <mat-option *ngIf="isLoading" class="is-loading"><mat-spinner diameter="50"></mat-spinner></mat-option>
+                      <ng-container *ngIf="!isLoading">
+                        <mat-option *ngFor="let item of filteredOptimaItems" [value]="item" style="height:50px; line-height: 11px; margin-bottom: 0px;">
+                          <div class="row">
+                            <div class="col-5">
+                              <span [innerHTML]="item.twr_Kod | highlight: acValue.value : true" style="font-size:small;"></span>
+                            </div>
+                            <div class="col-3">
+                              <span><small> {{ item.mag_Symbol }}</small></span>
+                            </div>
+                            <div class="col-4">
+                              <span><small class="float-right font-weight-bold"> {{ item.twI_Ilosc | number : '1.4-4' }} {{ item.twr_JM }}</small></span>
+                            </div>
+                          </div>
+                          <br />
+                          <small style="color:darkgreen; font-weight: 600;">{{ item.twr_Nazwa }}</small>
+                          <mat-divider class="mt-2"></mat-divider>
+                        </mat-option>
+                      </ng-container>
+                    </mat-autocomplete>
+
+                  </form>
+                  <div class="row">
+                    <div class="col-3">
+                      <mat-form-field style="width:122px; margin-left:0rem;" *ngIf="selectedOptimaItem.twr_JM == 'mb' || selectedOptimaItem.twr_JM == 'm'">
+                        <input (keydown)="onKeydownMMInput($event)"
+                               (change)="wareLengthMMChange()"
+                               matInput min="0" placeholder="Ilość w mm" type="number"
+                               [(ngModel)]="wareToBeAddedLengthMM" />
+                        <span matSuffix>mm</span>
+                      </mat-form-field>
+                    </div>
+                    <div class="col-3">
+                      <mat-form-field style="width:122px; margin-left:2rem; margin-right:2.5rem;">
+                        <input (keydown)="onKeydownMInput($event)" (change)="wareLengthMChange()" matInput min="0" placeholder="Ilość w {{selectedOptimaItem? 'mb' : selectedOptimaItem.twI_Ilosc}}" type="number" [(ngModel)]="wareToBeAddedLengthM" />
+                        <span matSuffix>{{selectedOptimaItem.twr_JM}}</span>
+                      </mat-form-field>
+                    </div>
+                    <div class="col-6">
+                      <button class="ml-5" mat-raised-button color="primary" (click)="onAddWareToSubOrderItem()" [disabled]="!allowAddWareToSubOrderItem">
+                        <mat-icon>add_circle</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <mat-list dense>
+                    <div class="row">
+                      <div class="col-7"><h2 mat-subheader class="font-weight-bold">Kod</h2></div>
+                      <div class="col-2"><h2 mat-subheader class="font-weight-bold">Ilość</h2></div>
+                      <div class="col-1"><h2 mat-subheader class="font-weight-bold">Jedn.</h2></div>
+                      <div class="col-1"></div>
+                    </div>
+                    <div style="height: 50px;">
+                      <mat-list-item>
+                        <div class="row"></div>
+                        <div class="col-7" style="margin-left: 15px;">{{selectedSubOrderItem.ware == null ? "Brak przypisanego materiału" : selectedSubOrderItem.ware.code}}</div>
+                        <div class="col-2 font-weight-bold" style="margin-left: 37px;">{{selectedSubOrderItem.ware == null ? "" : selectedSubOrderItem.wareLength | number : '1.3-3'}}</div>
+                        <div class="col-1" style="margin-left: 12px;">{{selectedSubOrderItem.ware == null ? "" : selectedSubOrderItem.wareUnit}}</div>
+                        <div class="col-1">
+                          <button mat-icon-button color="warn" [disabled]="selectedSubOrderItem.ware == null ? 'true' : 'false'">
+                            <mat-icon (click)="onDeleteWareFromComponent(selectedSubOrderItem)">
+                              delete
+                            </mat-icon>
+                          </button>
+                        </div>
+                      </mat-list-item>
+                      <mat-divider></mat-divider>
+                    </div>
+                  </mat-list>
+                  <div class="row mt-4 d-flex justify-content-end">
+                    <button mat-raised-button color="success" (click)="onSaveSubOrderItem(0)" class="mr-2" [disabled]="!(selectedSubOrderItem.updatedLocally && !selectedSubOrderItem.isBookQtyChanged)">
+                      <mat-icon class="mr-1">save</mat-icon>
+                      Zapisz
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-3">
+            <div style="font-size: 1.05rem; font-weight: 500; margin-top:10px;">Planowanie produkcji</div>
+            <hr class="my-0" />
+            <div style="height:615px;">
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+      <mat-tab *ngIf="isPurchaseItemsPresent">
+        <ng-template mat-tab-label>
+          <mat-icon class="example-tab-icon">shopping_cart</mat-icon>
+          Lista części kupnych
+        </ng-template>
+        <div class="row h-100">
+          <div class="col-4 h-100">
+            <div class="h-100">
+              <div class="row pt-2">
+                <div class="col-8">
+                </div>
+                <div class="col-2" style="padding-left:15px;">
+                  <button mat-raised-button color="primary" style="min-width:15px; line-height:25px; width:15px; display:inline-flex; justify-content:center;"
+                          (click)="toogleAllPurchaseItemsToProduction()">
+                    <img class="cog-img" src="../../../assets/Svgs/cog.svg" height="15" width="15" />
+                  </button>
+                </div>
+                <div class="col-2">
+                </div>
+              </div>
+              <mat-list dense style="margin-top: 0px; padding-bottom: 2.1rem; height: 78vh;">
+                <div class="scrollbar-purchaselist" id="style-11">
+                  <div *ngFor="let item of subOrder; let i = index">
+                    <div *ngIf="item.inProduction.sourceType == 5 || item.isAdditionallyPurchasable == true">
+                      <mat-list-item style="height: 25px;"
+                                     [ngClass]="{'list-group-item-primary': selectedPurchaseSubOrderItem.inProduction.component.number === item.inProduction.component.number}"
+                                     (click)="onSelectedPurchaseSubOrderItem(item, i)">
+                        <div *ngIf="!item.isUpdating; else item_updating" style="width: 15px; border: 1px solid; height:15px;margin-right:10px; border-radius:15px; background-color:white"
+                             [ngStyle]="{'background-color': item.updatedLocally ? 'rgb(255, 224, 83)' : '#fff' && item.updatedInDatabase ? '#00ff21' : '#fff'}"></div>
+
+                        <div class="col-6 text-truncate" [matTooltip]="item.inProduction.component.number">{{item.inProduction.component.number}}</div>
+                        <div class="col-1">
+                        </div>
+                        <div class="col-1">
+                          <img *ngIf="item.ware != null" src="../../../assets/Images/box.png" height="15" width="15" />
+                        </div>
+                        <div class="mr-auto col-1" appToProductionToggle [(check)]="item.isInProduction" (click)="onToProductionPurchaseToggleChange(item, true)">
+                        </div>
+                        <div class="float-right badge badge-primary">{{item.inProduction.plannedQty}} ({{item.totalToIssue}})</div>
+                      </mat-list-item>
+                      <mat-divider></mat-divider>
+                    </div>
+                  </div>
+                </div>
+              </mat-list>
+            </div>
+          </div>
+          <div class="col-8">
+            <div>
+              <mat-form-field class="mr-4 mt-3" style="width: 785px;">
+                <input matInput placeholder="Nazwa" [(ngModel)]="selectedPurchaseSubOrderItem.inProduction.component.name" />
+              </mat-form-field>
+              <mat-form-field style="width: 64px;" class="mr-4">
+                <!--<input matInput placeholder="Ilość" value="{{selectedPurchaseSubOrderItem?.toIssue}}" />-->
+                <input matInput min="0" placeholder="Ilość" type="number" [formControl]="purchaseComponentQuantityInput" (input)="onComponentQtyChange(selectedPurchaseSubOrderItem)" />
+                <span matSuffix>szt.</span>
+              </mat-form-field>
+              <mat-form-field style="width: 64px;">
+                <input readonly matInput placeholder="Suma" value="{{selectedPurchaseSubOrderItem?.totalToIssue}}" />
+                <span matSuffix>szt.</span>
+              </mat-form-field>
+            </div>
+            <div>
+              <div class="row">
+
+                <div class="col-8">
+
+                  <form>
+                    <mat-form-field style="width: 670px" class="mt-3">
+                      <input (keydown)="onKeydownACValuePurchase($event)" #acValuePurchase matInput [value]="searchPurchaseOptimaWarehouseInputValue" placeholder="Towar w magazynie Optimy" [matAutocomplete]="autoPurchase" [formControl]="searchPurchaseOptimaWarehouse" />
+                    </mat-form-field>
+                    <mat-autocomplete panelWidth="800" (optionSelected)="onPurchaseSelectedOptimaItem($event)" class="default-scroll" #autoPurchase="matAutocomplete" [displayWith]="searchPurchaseOptimaWarehouseDisplay" style="max-height:400px;">
+                      <mat-option *ngIf="isLoading" class="is-loading"><mat-spinner diameter="50"></mat-spinner></mat-option>
+                      <ng-container *ngIf="!isLoading">
+                        <mat-option *ngFor="let item of filteredPurchaseOptimaItems" [value]="item" style="height:50px; line-height: 11px; margin-bottom: 0px;">
+                          <!--<span [innerHTML]="item.twr_Kod | highlight: acValue.value : true" style="font-size:small;"></span>
+                          <small class="float-right font-weight-bold"> {{ item.twI_Ilosc }} {{ item.twr_JM }}</small>-->
+                          <div class="row">
+                            <div class="col-5">
+                              <span [innerHTML]="item.twr_Kod | highlight: acValuePurchase.value : true" style="font-size:small;"></span>
+                            </div>
+                            <div class="col-3">
+                              <span><small> {{ item.mag_Symbol }}</small></span>
+                            </div>
+                            <div class="col-4">
+                              <span><small class="float-right font-weight-bold"> {{ item.twI_Ilosc | number : '1.4-4' }} {{ item.twr_JM }}</small></span>
+                            </div>
+                          </div>
+                          <br />
+                          <small style="color:darkgreen; font-weight: 600;">{{ item.twr_Nazwa }}</small>
+                          <mat-divider class="mt-2"></mat-divider>
+                        </mat-option>
+                      </ng-container>
+                    </mat-autocomplete>
+                  </form>
+                </div>
+                <div class="col-4 mt-3 d-flex align-items-center">
+                  <button class="ml-5" mat-raised-button color="primary" (click)="onAddWareToPurchaseSubOrderItem()" [disabled]="!allowAddWareToPurchaseComponent">
+                    <mat-icon>add_circle</mat-icon>
+                  </button>
+                </div>
+              </div>
+              <mat-list dense>
+                <div class="" id="style-11">
+                  <div class="row w-100">
+                    <div class="col-6"><h2 matSubheader class="font-weight-bold">Kod</h2></div>
+                    <div class="col-5"><h2 matSubheader class="font-weight-bold">Nazwa</h2></div>
+                    <div class="col-1"></div>
+                  </div>
+                  <div style="height: 50px;">
+                    <mat-list-item>
+                      <div class="row w-100"></div>
+                      <div class="col-6 pl-0">{{selectedPurchaseSubOrderItem.ware == null ? "Brak przypisanego materiału" : selectedPurchaseSubOrderItem.ware.code}}</div>
+                      <div class="col-5 font-weight-bold">{{selectedPurchaseSubOrderItem.ware == null ? "" : selectedPurchaseSubOrderItem.ware.name}}</div>
+                      <div class="col-1">
+                        <button mat-icon-button [disabled]="selectedPurchaseSubOrderItem.ware == null ? 'true' : 'false'">
+                          <mat-icon color="warn" (click)="onDeleteWareFromComponent(selectedPurchaseSubOrderItem)">delete</mat-icon>
+                        </button>
+                      </div>
+                    </mat-list-item>
+
+                    <mat-divider></mat-divider>
+                  </div>
+                </div>
+              </mat-list>
+              <div class="row mt-4 d-flex justify-content-end">
+                <button mat-raised-button color="success" (click)="onSaveSubOrderItem(5)" class="mr-3" [disabled]="!(selectedSubOrderItem.updatedLocally && !selectedSubOrderItem.isBookQtyChanged)">
+                  <mat-icon class="mr-1">save</mat-icon>
+                  Zapisz
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+  <div style="border: 1px solid rgba(0,0,0,.03); box-shadow: 0 2px 2px rgba(0,0,0,.24), 0 0 2px rgba(0,0,0,.12);  margin: 4px;
+    padding:10px; display:flex; justify-content:flex-end">
+    <button mat-raised-button color="success" (click)="onFinishModifyingSubOrder()" class="mr-3">
+      <mat-icon class="mr-1">exit_to_app</mat-icon>
+      Zakończ
+    </button>
+  </div>
+</div>
+

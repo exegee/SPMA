@@ -1,0 +1,6 @@
+<div class="unselectable">
+  <img  *ngIf="checkValue; else elseBlock" src="../../../assets/Images/cog.png" height="15" width="15" />
+  <ng-template #elseBlock>
+    <img src="../../../assets/Images/cog.png" height="15" width="15" style="opacity:0.5;" />
+  </ng-template>
+</div>

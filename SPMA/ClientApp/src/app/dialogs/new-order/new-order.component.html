@@ -1,0 +1,151 @@
+<h1 mat-dialog-title>{{description}}</h1>
+
+<mat-dialog-content [formGroup]="form" class="pb-3">
+  <div class="row">
+    <div class="col">
+      <mat-form-field>
+        <input matInput
+               placeholder="Numer zlecenia"
+               formControlName="number">
+        <mat-error *ngIf="!form.get('number').valid ">Numer zlecenia jest wymagany</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="col pl-0">
+      <button mat-raised-button (click)="onGeneraterOrderNumber()">Generuj</button>
+    </div>
+    <div class="col">
+      <mat-form-field class="order-name-input">
+        <input matInput
+               placeholder="Nazwa zlecenia"
+               formControlName="name">
+        <mat-error *ngIf="!form.get('name').valid ">Nazwa zlecenia jest wymagana</mat-error>
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <mat-form-field>
+        <mat-select placeholder="Typ zlecenia" formControlName="type" (selectionChange)="onOrderTypeChange()">
+          <mat-option *ngFor="let type of orderTypes" [value]="type.value">
+            {{type.viewValue}}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="!form.get('type').valid ">Typ zlecenia jest wymagany</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="col">
+      <mat-form-field class="order-qty-input">
+        <input type="number" matInput
+               placeholder="Ilość"
+               formControlName="plannedQty">
+        <mat-error *ngIf="!form.get('plannedQty').valid ">Ilość jest wymagana</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="col">
+      <mat-form-field class="client-name-input">
+        <input matInput
+               #acClientValue
+               [value]="searchOptimaClientsInputValue"
+               placeholder="Zamawiający"
+               [matAutocomplete]="auto"
+               formControlName="clientName">
+      </mat-form-field>
+      <mat-autocomplete panelWidth="400px" (optionSelected)="onSelectedOptimaClient($event)" #auto="matAutocomplete" [displayWith]="searchClientDisplay" #autoOrder="matAutocomplete">
+        <mat-option *ngIf="isLoadingClients"><mat-spinner diameter="50"></mat-spinner></mat-option>
+        <ng-container *ngIf="!isLoadingClients">
+          <mat-option *ngFor="let client of filteredOptimaClients" [value]="client" style="height:50px; line-height: 11px; margin-bottom: 0px;">
+            <div class="row client-name-row">
+              <div class="col-12">
+                <span><small> {{ client.knt_Kod }} </small></span>
+              </div>
+            </div>
+            <br />
+            <div class="row">
+              <div class="col-12">
+                <small style="color:grey;"> {{ client.knt_KodPocztowy }} {{ client.knt_Miasto }}, {{ client.knt_Ulica }}, {{ client.knt_Kraj }}</small>
+              </div>
+            </div>
+          </mat-option>
+          <!--<mat-divider class="mt-2"></mat-divider>-->
+        </ng-container>
+      </mat-autocomplete>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <mat-form-field>
+        <input matInput [matDatepicker]="orderDatePicker" placeholder="Data wpłynięcia" formControlName="orderDate">
+        <mat-datepicker-toggle matSuffix [for]="orderDatePicker"></mat-datepicker-toggle>
+        <mat-datepicker #orderDatePicker></mat-datepicker>
+      </mat-form-field>
+    </div>
+    <div class="col"></div>
+    <div class="col">
+      <mat-form-field>
+        <input matInput [matDatepicker]="requiredDatePicker" placeholder="Termin wykonania" formControlName="requiredDate">
+        <mat-datepicker-toggle matSuffix [for]="requiredDatePicker"></mat-datepicker-toggle>
+        <mat-datepicker #requiredDatePicker></mat-datepicker>
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <mat-form-field class="w-100">
+        <textarea matInput
+                  cdkTextareaAutosize
+                  #autosize="cdkTextareaAutosize"
+                  cdkAutosizeMinRows="2"
+                  cdkAutosizeMaxRows="10"
+                  placeholder="Komentarz"
+                  formControlName="comment"></textarea>
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="row pt-3">
+    <div class="col">
+      <h6>Adres dostawy</h6>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <mat-form-field class="address-input">
+        <input matInput
+               placeholder="Ulica"
+               formControlName="shippingAddress">
+      </mat-form-field>
+    </div>
+    <div class="col">
+      <mat-form-field class="w-25 pr-2">
+        <input matInput
+               placeholder="Kod"
+               formControlName="shippingPostalCode">
+      </mat-form-field>
+      <mat-form-field class="w-75">
+        <input matInput
+               placeholder="Miasto"
+               formControlName="shippingCity">
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <mat-form-field class="w-100">
+        <input matInput
+               placeholder="Region"
+               formControlName="shippingRegion">
+      </mat-form-field>
+    </div>
+    <div class="col">
+      <mat-form-field class="w-100">
+        <input matInput
+               placeholder="Kraj"
+               formControlName="shippingCountry">
+      </mat-form-field>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions class="pb-3 float-right">
+  <button mat-raised-button (click)="onCancel()">Anuluj</button>
+  <button [disabled]="!form.valid" mat-raised-button color="primary" (click)="onCreate()">Utwórz</button>
+</mat-dialog-actions>

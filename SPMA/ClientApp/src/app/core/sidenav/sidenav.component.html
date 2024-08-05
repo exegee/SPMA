@@ -1,0 +1,77 @@
+<!--<nav class="col-auto d-none d-md-block bg-light sidebar">-->
+  <nav class="bg-light sidebar" style="width: 200px;">
+    <div class="sidebar-sticky">
+      <mat-accordion>
+        <mat-nav-list>
+          <a mat-list-item routerLink="/"><span class="sidebar-nav-link"><i data-feather="home" class="mr-3"></i>Pulpit</span></a>
+          <mat-divider></mat-divider>
+          <!--<div mat-list-item routerLink="/orders">-->
+          <mat-expansion-panel>
+            <mat-expansion-panel-header expandedHeight="48px">
+              <i data-feather="file" class="sidebar-nav-link-list"></i>Zlecenia
+            </mat-expansion-panel-header>
+            <div class="sidebar-nav-link-list-container">
+              <mat-nav-list dense>
+                <a mat-list-item (click)="toOrderList(0)"><span class="sidebar-nav-link-item"><i data-feather="list" class="mr-3"></i>Aktywne zlecenia</span></a>
+                <a mat-list-item (click)="toOrderList(10)" class="mb-3"><span class="sidebar-nav-link-item"><i data-feather="check-circle" class="mr-3"></i></span><span class="p-0 sidebar-nav-link-item">Zakończone zlecenia</span></a>
+                <a mat-list-item routerLink="/orders/import"><span class="sidebar-nav-link-item"><i data-feather="upload" class="mr-3"></i>Importuj książkę</span></a>
+                <a mat-list-item routerLink="/orders/add"><span class="sidebar-nav-link-item"><i data-feather="book" class="mr-3"></i>Dodaj książkę</span></a>
+                <a mat-list-item routerLink="/orders/bookslist"><span class="sidebar-nav-link-item"><i data-feather="layers" class="mr-3"></i>Lista książek</span></a>
+              </mat-nav-list>
+            </div>
+          </mat-expansion-panel>
+          <mat-divider></mat-divider>
+          <!-- </div> -->
+          <!--<div mat-list-item routerLink=".">-->
+          <mat-expansion-panel>
+            <mat-expansion-panel-header expandedHeight="48px">
+              <i data-feather="package" class="sidebar-nav-link-list"></i>Produkcja
+            </mat-expansion-panel-header>
+            <div class="sidebar-nav-link-list-container">
+              <mat-nav-list dense>
+                <a mat-list-item routerLink="."><span class="sidebar-nav-link-item"><i data-feather="activity" class="mr-3"></i>Podgląd</span></a>
+                <a mat-list-item routerLink="."><span class="sidebar-nav-link-item"><i data-feather="clipboard" class="mr-3"></i>Zleć wykonanie</span></a>
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header class="inner-expansion-panel-header">
+                    <i data-feather="cpu" class="sidebar-nav-link-list"></i>Gniazda obróbcze
+                  </mat-expansion-panel-header>
+                  <div class="inner-expansion-panel-body">
+                    <mat-nav-list dense>
+                      <a mat-list-item routerLink="/production/selectionScreen" [queryParams]="{socket: 'saw'}"><span class="sidebar-nav-link-item"><i data-feather="aperture" class="mr-3"></i>Piła</span></a>
+                      <a mat-list-item routerLink="/production/selectionScreen" [queryParams]="{socket: 'plasma'}"><span class="sidebar-nav-link-item"><i data-feather="zap" class="mr-3"></i>Plazma</span></a>
+                    </mat-nav-list>
+                  </div>
+                </mat-expansion-panel>
+              </mat-nav-list>
+            </div>
+          </mat-expansion-panel>
+          <!--INWENTARYZACJA-->
+          <mat-divider></mat-divider>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header expandedHeight="48px">
+              <i data-feather="package" class="sidebar-nav-link-list"></i>Inwentaryzacja
+            </mat-expansion-panel-header>
+            <div class="sidebar-nav-link-list-container">
+              <mat-nav-list dense>
+                <a mat-list-item routerLink="/stocktaking/pit-data"><span class="sidebar-nav-link-item"><i data-feather="activity" class="mr-3"></i>Dane</span></a>
+                <a mat-list-item routerLink="/stocktaking/pit"><span class="sidebar-nav-link-item"><i data-feather="clipboard" class="mr-3"></i>Spis z natury</span></a>
+              </mat-nav-list>
+            </div>
+          </mat-expansion-panel>
+          <!--USTAWIENIA-->
+          <mat-divider></mat-divider>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header expandedHeight="48px">
+              <i data-feather="settings" class="sidebar-nav-link-list"></i>Ustawienia
+            </mat-expansion-panel-header>
+            <div class="sidebar-nav-link-list-container">
+              <mat-nav-list dense>
+                <a mat-list-item routerLink="/settings/services"><span class="sidebar-nav-link-item"><i data-feather="activity" class="mr-3"></i>Usługi</span></a>
+              </mat-nav-list>
+            </div>
+          </mat-expansion-panel>
+          <mat-divider></mat-divider>
+        </mat-nav-list>
+      </mat-accordion>
+    </div>
+  </nav>

@@ -1,0 +1,18 @@
+<div class="table-wrapper">
+  <table class="table table-striped" >
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col" colspan="2">Nazwa</th>
+        <th scope="col">Numer</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of orders">
+        <td>{{order.orderId}}</td>
+        <td colspan="2">{{order.name}}</td>
+        <td>{{order.number}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

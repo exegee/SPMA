@@ -1,0 +1,44 @@
+
+<div class="container">
+  <p class="h4 mb-3"><strong>Okno zmiany rodzaju materiału</strong></p>
+  <mat-divider class="mb-4"></mat-divider>
+
+  <div class="row">
+    <div class="col">
+      <mat-form-field style="width: inherit">
+        <input matInput placeholder="Rodzaj materiału"
+               [formControl]="materialNameInput"
+               #acValue
+               (input)="enableConfirmButton=false"
+               [matAutocomplete]="auto" />
+      </mat-form-field>
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="searchOptimaWarehouseDisplay">
+        <mat-option *ngIf="isLoading"><mat-spinner diameter="50"></mat-spinner></mat-option>
+        <ng-container *ngIf="!isLoading">
+          <mat-option *ngFor="let item of filteredOptimaItems" (click)="enableConfirmButton=true" [value]="item" style="height:50px; line-height: 11px; margin-bottom: 0px;">
+            <div class="row">
+              <div class="col-5">
+                <span [innerHTML]="item.twr_Kod | highlight: acValue.value : true" style="font-size:small;"></span>
+              </div>
+              <div class="col-3">
+                <span><small> {{ item.mag_Symbol }}</small></span>
+              </div>
+              <div class="col-4">
+                <span><small class="float-right font-weight-bold"> {{ item.twI_Ilosc | number : '1.4-4' }} {{ item.twr_JM }}</small></span>
+              </div>
+            </div>
+            <br />
+            <small style="color:darkgreen; font-weight: 600;">{{ item.twr_Nazwa }}</small>
+            <mat-divider class="mt-2"></mat-divider>
+          </mat-option>
+        </ng-container>
+      </mat-autocomplete>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col mb-1 d-flex justify-content-end">
+      <button class="my-1 button-look" mat-raised-button color="success" (click)="onYesClick()" [disabled]="!enableConfirmButton">Zapisz</button>
+      <button class="my-1 ml-2 button-look" mat-raised-button color="warn" mat-dialog-close>Zamknij</button>
+    </div>
+  </div>
+</div>

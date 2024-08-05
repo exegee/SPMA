@@ -1,0 +1,41 @@
+.mat-expansion-panel {
+  border-radius: 0px;
+  box-shadow: none;
+  background: none;
+  padding: 0;
+}
+
+.sidebar-nav-link-item {
+  font: 400 14px/20px Roboto,"Helvetica Neue",sans-serif;
+  padding-left: 14px;
+  align-self:baseline;
+}
+
+.sidebar-nav-link {
+  font: 400 14px/20px Roboto,"Helvetica Neue",sans-serif;
+  padding-left: 8px;
+}
+
+.sidebar-nav-link-list-container {
+  margin: 0 -24px;
+}
+
+.sidebar-nav-link-list {
+  margin-right: 14px;
+  margin-top: 2px;
+  width:20px;
+  vertical-align: middle;
+}
+
+.inner-expansion-panel-header{
+    padding-left: 30px;
+}
+
+.mat-expansion-panel-body{
+    padding-left: 30px;
+}
+
+.inner-expansion-panel-body {
+  margin: 0 -24px;
+  padding-left:10px;
+}
